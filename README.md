@@ -4,21 +4,21 @@ A glammar source is also named a grammar as very basic glammar source is also a 
 Not all programs need to parse or process input.  For example a glammar source is often the easiest way
 to solve a puzzle programmatically. 
 
-Below is an example of a deterministic puzzle solving grammer:
-#-d
-towers of hanoi( moves>) :
+Below is an example of a deterministic puzzle solving grammer: 
+   #-d
+   towers of hanoi( moves>) :
     number (n>),
     (moves>) move (>n) disks from (>S) to (>D) using (>A).
 
-("Move disc 1 from " +s + " to " +d + nlcr>) move (>I) disks from (>s) to (>d) using (>_): ->;
-(x+"Move disc "+dec n+ " from " + s+ " to "+ d+ nlcr+y>) move (>I+m) disks from (>s) to (>d) using (>a):
+    ("Move disc 1 from " +s + " to " +d + nlcr>) move (>I) disks from (>s) to (>d) using (>_): ->;
+    (x+"Move disc "+dec n+ " from " + s+ " to "+ d+ nlcr+y>) move (>I+m) disks from (>s) to (>d) using (>a):
     length(>I+m, dec n>),
     (x>) move (>m) disks from (>s) to (>a) using (>d),
     (y>) move (>m) disks from (>a) to (>d) using (>s).
 
-number (u>):
-    layout, !0123456789! + (n>),layout,
-    (>n) decimal to unary ( u>).
+  number (u>):
+      layout, !0123456789! + (n>),layout,
+      (>n) decimal to unary ( u>).
 
 I::"1".
 S::"1".
@@ -83,12 +83,12 @@ Six   :: "i" +Five.
 Seven :: "i" +Six.
 Eight :: "i" +Seven.
 
-#
-#       The following hyperrules are builtins but could be defined as:
-#
-# layout : !\n\t !* .
-# where (>x,x>):.
-# empty ::.
+    #
+    #       The following hyperrules are builtins but could be defined as:
+    #
+    # layout : !\n\t !* .
+    # where (>x,x>):.
+    # empty ::.
 
 And while these are fairly standard examples of puzzles for which a solition is provided in many languages
 here is one that is harder to google:
@@ -97,7 +97,7 @@ solve robbers with a bag river crossing puzzle("Found one: \n"+crossings>):
 # start condition is an empty boat meets all robbers and bags on bank A
     (>"000", >"000") cross to bank (>"A") meeting (>"111", >"111", crossings>).
 
-# end condition is boat and all robbers and bags  are on bank B
+    # end condition is boat and all robbers and bags  are on bank B
 (>one robber,>one bag) cross to bank (>"B") meeting ( >two robbers,  >two bags, empty>):
     two (>two robbers),
     two (>two bags),
@@ -230,8 +230,8 @@ more robber(>robbers) with bags (>bags) doesn't run:.
 (>robbers, >_) can meet (>_+"1"+_, >_) provided ("000">) stays :->;
 (>two robbers,>"000") can meet (>any robbers,>bags)  provided ("000">) stays :
       two (>two robbers),->;
-#      choose one (>two robbers, one robber>, other robber>),
-#      robber (>one robber) with bags (>bags) doesn't run;
+  #      choose one (>two robbers, one robber>, other robber>),
+  #      robber (>one robber) with bags (>bags) doesn't run;
 (>robber,>with a bag) can meet (>"000",>meeting bags) provided ("000">) stays :
       one (>robber),
       combine (>with a bag , >meeting bags, bags>),
@@ -240,7 +240,7 @@ more robber(>robbers) with bags (>bags) doesn't run:.
       one (>robber),
       robber (>robber) with bags (>bags) doesn't run,->;
 (>robbers,>bags) can meet (>any old robbers,>any old bags) provided ("000">) stays:
-#    type out (>"robbers "+robbers+" with bags "+bags+" cannot meet "+ any old robbers+ " "+any old bags+nlcr),
+   #    type out (>"robbers "+robbers+" with bags "+bags+" cannot meet "+ any old robbers+ " "+any old bags+nlcr),
     fail.
 
 no new bags if (>"000", >new bags, new bags>): ->;
