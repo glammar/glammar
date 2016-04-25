@@ -93,134 +93,165 @@ Eight :: "i" +Seven.
 And while these are fairly standard examples of puzzles for which a solition is provided in many languages
 here is one that is harder to google:
 
-# grammar to solve the robbers crossing puzzle
+solve robbers with a bag river crossing puzzle("Found one: \n"+crossings>):
+# start condition is an empty boat meets all robbers and bags on bank A
+    (>"000", >"000") cross to bank (>"A") meeting (>"111", >"111", crossings>).
 
-rrx ("Found one "+m+nlcr>):
-    moves (>"1",>"111 111", m>).
+# end condition is boat and all robbers and bags  are on bank B
+(>one robber,>one bag) cross to bank (>"B") meeting ( >two robbers,  >two bags, empty>):
+    two (>two robbers),
+    two (>two bags),
+    one(>one robber),
+    one(>one bag),->;
+(>one robber,>"000") cross to bank (>"B") meeting ( >two robbers,  >THREE, empty>):
+    two (>two robbers),
+    one(>one robber),->;
+(>any new robbers, >any new bags) cross to bank (>b)
+                       meeting ( >any old robbers,  >any old bags, crossing+crossings>):
+# check for safe arrival
+   (>any new robbers, >any new bags ) can meet (>any old robbers, > any old bags)
+     provided  (stay put>) stays,
 
-moves(>"0",>"000 000", empty>): ->;
-moves(>"0", >x, m+" row from B to A\n"+mm>):
-   move down (>x, z>, m>),
-   excludes(>z, >"0"),
-   add to (>z, >"0", >m),
-   type out(>m+" row from B to A\n"),
-   moves(>"1",>z, mm>),->;
-moves(>"1",>x, m+" row from A to B\n"+mm>):
-   move up (>x, z>, m>),
-   excludes(>z, >"1"),
-   add to (>z, >"1", >m),
-   type out(>m+" row from B to A\n"),
-   moves(>"0",>z, mm>).
-
-
-#2 transitions 1r and 1b (3r,3b) at A
-move up(>"111 111","011 011">, "r8 and b8">):;
-move up(>"111 111","011 101">, "r8 and b5">):;
-move up(>"111 111","011 110">, "r8 and b3">):;
-move up(>"111 111","101 101">, "r5 and b5">):;
-move up(>"111 111","101 110">, "r5 and b3">):;
-move up(>"111 111","110 110">, "r3 and b3">):;
-
-#2 transitions 1r and 1b (3r,2b at A ) ->(2r, 1b at A)
-move up(>"111 110","011 100">, "r8 and b5">):;
-move up(>"111 101","011 100">, "r8 and b3">):;
-
-#2 transition 1r and 1b (2r,3b) at A -> (1r, 2b) at A
-move up(>"101 111","100 011">, "r3 and b8">):;
+   no new bags if (>stay put, >any new bags, arriving bags>),
+# check for safe departure
+    arriving(>any new robbers, >arriving bags, >stay put) on bank (>b) meeting ( >any old robbers,  >any old bags)
+                       departing (d r>, d b>) towards (t r>, t b>),
+    invert(>b, ib>),
+    pretty print this crossing(>"robber",>d r, m>),
+    pretty print this crossing(>"and bag   ",>d b, mm>),
+    where(>"  "+m+mm+"row to "+ib+ " meeting "+t r + " "+ t b+nlcr, crossing>),
+#    type out(>crossing),
+    (>d r, >d b) cross to bank (>ib) meeting (>t r, >t b, crossings>).
 
 
-#2 transition 1r and 1b (2r,2b) at A -> (1r, 1b) at A
-move up(>"110 110","010 010">, "r8 and b8">):;
-move up(>"110 110","100 010">, "r5 and b5">):;
-move up(>"110 110","100 100">, "r5 and b8">):;
-move up(>"101 110","100 100">, "r3 and b5">):;
-move up(>"011 110","010 010">, "r3 and b3">):;
+arriving(>any new robbers, >any newbags, >stay put bag) on bank (>b)
+                       meeting ( >any old robbers,  >any old bags)
+                       departing (departing robbers>, departing bags>)
+                       towards (robbers on other side>, bags on other side>):
+     combine(>any  new bags, >any old bags, new and old bags>),
+     combine(>any  new robbers, >any old robbers, robbers>),
+     choose robbers and or bag (>robbers, >new and old bags,>stay put bag,  departing robbers>, departing bags>,
+       stay behind robbers>,stay behind bags>),
+     not equal (>any old robbers+any old bags, >stay behind robbers+stay behind bags),
+     robber (>stay behind robbers) with bags (>stay behind bags) doesn't run,
+     combine(>new and old bags, >stay put bag, bags>),
+     where  (>robbers+any old bags+stay put bag+b, occurs at most once>),
+     excludes (>occurs at most once, >empty),
+     add to  (>occurs at most once, >empty, >empty),
+     invert (>bags, bags on other side>),
+     invert (>robbers, robbers on other side>).
+
+# choose robbers and or bag for departure
+choose robbers and or bag (>robbers, >stay behind bags,>bag left in boat,  departing robber>,  bag left in boat>,
+       stay behind robbers>, stay behind bags>):
+     one (>bag left in boat),->,
+   [ robbers ]  choose any (departing robber>, stay behind robbers>), one (>departing robber);
+choose robbers and or bag (>robbers, >bags,>no bag in boat,  departing robbers>,  departing bag>,
+       stay behind robbers>, stay behind bags>):
+   [ robbers ] choose any (departing robbers>, stay behind robbers>), one or two (>departing robbers),
+   [ bags    ] choose any (departing bag>, stay behind bags>), zero or one (>departing bag).
+
+two (>"110"):->;
+two (>"101"):->;
+two (>"011"):.
+
+one(>"100"):->;
+one(>"010"):->;
+one(>"001"):.
+
+one or two(>one): one (>one),->;
+one or two(>two): two (>two).
+
+zero or one (>"000"):->;
+zero or one (>one): one (>one).
+
+THREE::"111".
+
+combine(>empty, >empty, empty>):->;
+combine(>"0"+x, >"0"+y, "0"+z>):
+     combine(>x,>y, z>),->;
+combine(>"0"+x, >"1"+y, "1"+z>):
+     combine(>x,>y, z>),->;
+combine(>"1"+x, >"0"+y, "1"+z>):
+     combine(>x,>y, z>),->;
+combine(>x, >y, x>):
+    type out (>"combine of "+x+","+y+" failed\n"),
+     fail.
 
 
-#2 transition 1r and 1b (1r,2b at A)-> (0r, 1b at A)
-
-move up(>"100 011","000 010">, "r8 and b3">):;
-move up(>"100 011","000 001">, "r8 and b5">):;
-
-#2 transition 1r and 1b (2r,1b at A) -> (1r, 0b at A)
-
-move up(>"011 100","010 000">, "r8 and b3">):;
-move up(>"011 100","001 000">, "r8 and b3">):;
-
-#2 transition 1r and 1b (1r,1b at A) -> (0r, 0b at A)
-move up(>"100 100","000 000">, "r8 and b8">):;
-move up(>"100 010","000 000">, "r8 and b5">):;
-move up(>"100 001","000 000">, "r8 and b3">):;
-move up(>"010 001","000 000">, "r5 and b3">):;
-move up(>"010 010","000 000">, "r5 and b5">):;
-move up(>"001 001","000 000">, "r3 and b3">):;
+choose any(zz>, zz+empty>):
+   !0!*(zz>),
+   end of sentence,->;
+choose any ("0"+c>, "0"+nc>):
+   "0", ->,
+   choose any(c>, nc>);
+choose any ("0"+c>, "1"+nc>):
+   "1",
+   choose any(c>, nc>);
+choose any ("1"+c>, "0"+nc>):
+   "1",
+   choose any(c>, nc>).
 
 
-#2 transition 2r  (3r,3b at A) -> (1r, 3b at A) NA
-#2 transition 2r  (2r,3b at A) -> (0r, 2b at A)
-move up(>"110 111","000 111">, "r8 and r5">):;
-move up(>"101 111","000 111">, "r8 and r3">):;
-move up(>"011 111","000 111">, "r5 and r3">):;
+invert(>empty, empty>):->;
+invert(>"0", "1">):->;
+invert(>"A", "B">):->;
+invert(>"B", "A">):->;
+invert(>"1", "0">):->;
+invert(>"0"+x, "1"+z>):
+    invert(>x, z>),->;
+invert(>"1"+x, "0"+z>):
+    invert(>x, z>).
 
-#2 transition 2r  (2r,2b at A) -> (0r, 2b at A)
-move up(>"110 110","000 110">, "r8 and r5">):;
-move up(>"101 110","000 110">, "r8 and r3">):;
-move up(>"011 110","000 110">, "r5 and r3">):;
+robber (>robbers) with bags (>bags) doesn't run:
+   more robber (>robbers) with bags (>bags) doesn't run,->;
+robber (>robbers) with bags (>bags) doesn't run:
+#   type out (>"robbers "+robbers+" with bags "+bags+" run"+nlcr),
+      fail.
 
-#1 transition 1r   (3r,3b at A ) ->(2r, 3b at A)
-move up(>"111 111","011 111">, "r8">):;
-move up(>"111 111","101 111">, "r5">):;
-move up(>"111 111","110 111">, "r8">):;
+# checking what is left behind on departure is safe
+more robber(>robbers)with bags (>"000") doesn't run:->;
+more robber(>"001") with bags (>b) doesn't run:->, equal (>b, >"001");
+more robber(>"010") with bags (>"1"+x) doesn't run:->, fail;
+more robber(>"010") with bags (>"011") doesn't run:->, fail;
+more robber(>"100") with bags (>"100") doesn't run:->;
+more robber(>"100") with bags (>"1"+x) doesn't run:->, fail;
+more robber(>robbers) with bags (>bags) doesn't run:.
 
-#1 transition 1r   (3r,2b at A ) ->(2r, 2b at A)
-move up(>"111 110","011 110">, "r8">):;
-move up(>"111 101","011 101">, "r8">):;
-move up(>"111 011","011 011">, "r8">):;
-move up(>"111 101","101 101">, "r5">):;
-move up(>"111 110","101 110">, "r5">):;
-move up(>"111 110","110 110">, "r3">):;
 
-#1 transition 1r   (3r,1b at A ) ->(2r, 1b at A)
-move up(>"111 100","011 100">, "r8">):.
+# checking safe arrival
+# (arriving robbers,arriving bags) can meet (robbers on shore, bags on shore) provided (bag in boat or no bag) stays
+(>"000", >"000") can meet (>"111", >"111") provided ("000">) stays:->;
+(>one robber, >without a bag) can meet (>any old robbers, >bags) provided ("000">) stays:
+      one (>one robber),
+      equal (>without a bag, >"000"),
+      combine (>one robber, >any old robbers, robbers>),
+      robber (>robbers) with bags (>bags) doesn't run,->;
+(>robbers, >_) can meet (>_+"1"+_, >_) provided ("000">) stays :->;
+(>two robbers,>"000") can meet (>any robbers,>bags)  provided ("000">) stays :
+      two (>two robbers),->;
+#      choose one (>two robbers, one robber>, other robber>),
+#      robber (>one robber) with bags (>bags) doesn't run;
+(>robber,>with a bag) can meet (>"000",>meeting bags) provided ("000">) stays :
+      one (>robber),
+      combine (>with a bag , >meeting bags, bags>),
+      robber (>robber) with bags (>bags) doesn't run,->;
+(>robber,>with a bag) can meet (>"000",>bags) provided (with a bag>) stays :
+      one (>robber),
+      robber (>robber) with bags (>bags) doesn't run,->;
+(>robbers,>bags) can meet (>any old robbers,>any old bags) provided ("000">) stays:
+#    type out (>"robbers "+robbers+" with bags "+bags+" cannot meet "+ any old robbers+ " "+any old bags+nlcr),
+    fail.
 
-move down ( >"011 100", "111 100">, "r8">):;
-move down ( >"110 110", "111 110">, "r3">):;
-move down ( >"101 110", "111 110">, "r5">):;
-move down ( >"101 101", "111 101">, "r5">):;
-move down ( >"011 011", "111 011">, "r8">):;
-move down ( >"011 101", "111 101">, "r8">):;
-move down ( >"011 110", "111 110">, "r8">):;
-move down ( >"110 111", "111 111">, "r8">):;
-move down ( >"101 111", "111 111">, "r5">):;
-move down ( >"011 111", "111 111">, "r8">):;
-move down ( >"000 110", "011 110">, "r5 and r3">):;
-move down ( >"000 110", "101 110">, "r8 and r3">):;
-move down ( >"000 110", "110 110">, "r8 and r5">):;
-move down ( >"000 111", "011 111">, "r5 and r3">):;
-move down ( >"000 111", "101 111">, "r8 and r3">):;
-move down ( >"000 111", "110 111">, "r8 and r5">):;
-move down ( >"000 000", "001 001">, "r3 and b3">):;
-move down ( >"000 000", "010 010">, "r5 and b5">):;
-move down ( >"000 000", "010 001">, "r5 and b3">):;
-move down ( >"000 000", "100 001">, "r8 and b3">):;
-move down ( >"000 000", "100 010">, "r8 and b5">):;
-move down ( >"000 000", "100 100">, "r8 and b8">):;
-move down ( >"001 000", "011 100">, "r8 and b3">):;
-move down ( >"010 000", "011 100">, "r8 and b3">):;
-move down ( >"000 001", "100 011">, "r8 and b5">):;
-move down ( >"000 010", "100 011">, "r8 and b3">):;
-move down ( >"010 010", "011 110">, "r3 and b3">):;
-move down ( >"100 100", "101 110">, "r3 and b5">):;
-move down ( >"100 100", "110 110">, "r5 and b8">):;
-move down ( >"100 010", "110 110">, "r5 and b5">):;
-move down ( >"010 010", "110 110">, "r8 and b8">):;
-move down ( >"100 011", "101 111">, "r3 and b8">):;
-move down ( >"011 100", "111 101">, "r8 and b3">):;
-move down ( >"011 100", "111 110">, "r8 and b5">):;
-move down ( >"110 110", "111 111">, "r3 and b3">):;
-move down ( >"101 110", "111 111">, "r5 and b3">):;
-move down ( >"101 101", "111 111">, "r5 and b5">):;
-move down ( >"011 110", "111 111">, "r8 and b3">):;
-move down ( >"011 101", "111 111">, "r8 and b5">):;
-move down ( >"011 011", "111 111">, "r8 and b8">):.
+no new bags if (>"000", >new bags, new bags>): ->;
+no new bags if (>stay put bag, >stay put bag, "000">):.
+
+
+pretty print this crossing(>w, >"100", w+"8k ">):->;
+pretty print this crossing(>w, >"010", w+"5k ">):->;
+pretty print this crossing(>w, >"001", w+"3k ">):->;
+pretty print this crossing(>w, >"000", empty>):->;
+pretty print this crossing(>w, >"110", w+"8k and "+w+"5k ">):->;
+pretty print this crossing(>w, >"101", w+"8k and "+w+"3k ">):->;
+pretty print this crossing(>w, >"011", w+"5k and "+w+"3k ">):.
 
