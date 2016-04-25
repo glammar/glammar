@@ -1,0 +1,951 @@
+
+\documentstyle[glammar]{article}
+\topmargin      0 mm
+\headheight     0 mm
+\headsep        0 mm
+\textheight     240 mm
+\footskip       7 mm
+\footheight     11 mm
+
+\oddsidemargin  0 mm
+\evensidemargin 0 mm
+\small
+\textwidth      159.2 mm
+\author{Eric Voss}
+\title{Description of builtin rules in Glammar}
+\makeindex
+\begin{document}
+\maketitle
+{\small
+\begin{glammar}
+\L{\LB{}}
+\L{\LB{\Ln{20       }}}
+\end{glammar}}
+
+\small
+\noindent
+This section contains the description of  the current set of builtin rules.  
+Some builtin rules may not be redefined.
+The comment statement \verb+#plain+ indicates this for hyper rules.
+None of the meta builtin rules may be redefined.
+There are also some builtin rules that you may not even use.
+In that case the name ends with an underscore. 
+Other properties of a builtin rule are implicit in the form of its definition.
+These properties are:
+\begin{enumerate}
+\item
+deterministic builtin rules have only one production:
+{\small
+\begin{glammar}
+\L{\LB{        \K{builtin}: x.}}
+\L{\LB{}}
+\end{glammar}}
+
+\item
+      nondeterministic builtin rules that can be forced
+             to behave deterministic (-d option) have two productions:
+{\small
+\begin{glammar}
+\L{\LB{          \K{builtin }: x;}}
+\L{\LB{          builtin : x.}}
+\L{\LB{}}
+\end{glammar}}
+
+
+\item
+nondeterministic builtin rules have three productions:
+{\small
+\begin{glammar}
+\L{\LB{          \Proc{1}\K{builtin }\index{builtin 1}: x;}}
+\L{\LB{          builtin : x;}}
+\L{\LB{          builtin : x.}}
+\L{\LB{}}
+\L{\LB{}}
+\L{\LB{}}
+\end{glammar}}
+\item
+ builtin rules that always succeed have no members in the right hand side:
+{\small
+\begin{glammar}
+\L{\LB{          \Proc{1}\K{builtin }\index{builtin 1}: .}}
+\L{\LB{}}
+\L{\LB{}}
+\end{glammar}}
+
+\item
+builtin rules that do not produce empty have a terminal ({\tt "a"} by default) in the right hand side:
+{\small
+\begin{glammar}
+\L{\LB{          \Proc{1}\K{builtin }\index{builtin 1}: \T{}"x"\TE{}.}}
+\end{glammar}}
+
+\item
+builtin rules that use an inherited affix for affix directed parsing
+             have a single affix terminal on this position:
+{\small
+\begin{glammar}
+\L{\LB{          \Proc{1}\K{builtin }\index{builtin 1}\D{}(\>\S{}\"x\"\SE{})\DE{} : x.}}
+\end{glammar}}
+
+
+\item
+builtin rules that do not use an inherited affix for affix directed parsing
+             have a single affix variable on this position:
+{\small
+\begin{glammar}
+\L{\LB{         \Proc{1}\K{builtin }\index{builtin 1}\D{}(\>x)\DE{} : x.}}
+\end{glammar}}
+\end{enumerate}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{95       }}}
+\L{\LB{\Ln{96       }\Proc{96}\K{empty }::.}}
+\L{\LB{\Ln{97       }\Proc{97}\K{nlcr }:: \S{}\"\!n\"\SE{}.}}
+\L{\LB{\Ln{98       }\Proc{98}\K{quote }:: \S{}\"\!"\"\SE{}.}}
+\L{\LB{\Ln{99       }\Proc{99}\K{back slash }:: \S{}\"\!\!\"\SE{}.}}
+\L{\LB{\Ln{100      }}}
+\end{glammar}}
+
+\noindent These are some meta notions which you can use to recognize frequently used special symbols.
+\label{empty.}
+\label{nlcr.}
+\label{quote.}
+\label{backslash.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{106      }}}
+\L{\LB{\Ln{107      }\Proc{107}\K{generation time }:: \S{}\"Fri Sep 22 11:53:37 1989\"\SE{}.}}
+\L{\LB{\Ln{108      }\Proc{108}\K{generation date }:: \S{}\"Sep 22, 1989\"\SE{}.}}
+\L{\LB{\Ln{109      }}}
+\end{glammar}}
+
+\noindent The time and date the grammar was generated.
+This meta rule is set when you compile the grammar.  
+The definitions below show their form only.
+\label{generationtime.}
+\label{generationdate.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{115      }}}
+\L{\LB{\Ln{116      }}}
+\end{glammar}}
+
+\noindent  All special symbols can be denoted by giving the 
+octal ascii representation escaped by a back slash.
+To remain compatible with earlier implementations some special symbols
+are predefined. 
+{\small
+\begin{glammar}
+\L{\LB{\Ln{121      }}}
+\L{\LB{\Ln{122      }\C{}\#plain\CE{}}}
+\L{\LB{\Ln{123      }\Proc{123}\index{end of sentence 123}\K{end of sentence}= ?\T{}"\!000"\TE{}.}}
+\L{\LB{\Ln{124      }}}
+\end{glammar}}
+
+\noindent Tests for reached the end of the input.
+\label{endofsentence.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{127      }}}
+\L{\LB{\Ln{128      }\Proc{128}\index{nlcr 128}\K{nlcr}= \T{}"\!n"\TE{}.}}
+\L{\LB{\Ln{129      }\Proc{129}\index{quote  129}\K{quote }= \T{}"\!""\TE{}.}}
+\L{\LB{\Ln{130      }\Proc{130}\index{back slash  130}\K{back slash }= \T{}"\!\!"\TE{}.}}
+\L{\LB{\Ln{131      }}}
+\end{glammar}}
+
+\noindent Recognize a newline, quote or back slash respectively.
+{\small
+\begin{glammar}
+\L{\LB{\Ln{133      }}}
+\L{\LB{\Ln{134      }}}
+\L{\LB{\Ln{135      }}}
+\end{glammar}}
+
+\noindent This is a list of predicates which have been implemented in very early
+versions also.
+{\small
+\begin{glammar}
+\L{\LB{\Ln{138      }}}
+\L{\LB{\Ln{139      }}}
+\L{\LB{\Ln{140      }\C{}\#plain\CE{}}}
+\L{\LB{\Ln{141      }\Proc{141}\index{equal  141}\K{equal }\D{}(\Flow{}\S{}\"x\"\SE{},\Flow{}\S{}\"x\"\SE{})\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{142      }\C{}\#plain\CE{}}}
+\L{\LB{\Ln{143      }\Proc{143}\index{not equal  143}\K{not equal }\D{}(\Flow{}\S{}\"x\"\SE{},\Flow{}\S{}\"y\"\SE{})\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{144      }}}
+\end{glammar}}
+
+\noindent Recognizes the empty string (`succeeds') if the values of {\tt x} and {\tt y} are
+(not) equal.
+\label{equal.}
+\label{notequal.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{149      }}}
+\L{\LB{\Ln{150      }}}
+\L{\LB{\Ln{151      }\Proc{151}\index{find 151}\K{find}\D{}(\Flow{}\S{}\"target\"\SE{})\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{152      }}}
+\end{glammar}}
+
+\noindent Find skips input until target is found.
+It fails if target is not in the current input stream.  
+\label{find.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{156      }}}
+\L{\LB{\Ln{157      }\Proc{157}\index{was 1000 157}\K{was 1000}\D{}(last 1000 chars read\Flow{})\DE{}=. }}
+\L{\LB{\Ln{158      }\Proc{158}\index{was 100 158}\K{was 100}\D{}(last 100 chars read\Flow{})\DE{}=. }}
+\L{\LB{\Ln{159      }\Proc{159}\index{was 10 159}\K{was 10}\D{}(last 10 read\Flow{})\DE{}=. }}
+\L{\LB{\Ln{160      }\Proc{160}\index{was  160}\K{was }\D{}(last\Flow{})\DE{}=. }}
+\L{\LB{\Ln{161      }}}
+\end{glammar}}
+
+{\tt last} is assigned the value of the previously read character. 
+If at the beginning of the input {\tt last} is set to {\tt empty}. 
+The returned affix appears to be reversed from the original input, 
+thus the rule {\tt rule: "WAS" , last10 ("SAW">).}  can be succesfully evaluated. 
+{\small
+\begin{glammar}
+\L{\LB{\Ln{166      }}}
+\L{\LB{\Ln{167      }\Proc{167}\index{reverse  167}\K{reverse }\D{}(\Flow{}string, gnirts\Flow{})\DE{}=.}}
+\L{\LB{\Ln{168      }}}
+\end{glammar}}
+
+reverses {\tt string} and assigns the result to {\tt gnirts}.
+{\small
+\begin{glammar}
+\L{\LB{\Ln{170      }}}
+\L{\LB{\Ln{171      }\Proc{171}\index{compare  171}\K{compare }\D{}(\Flow{}x,\Flow{}y,tail x\Flow{}, tail y\Flow{})\DE{}= .}}
+\L{\LB{\Ln{172      }}}
+\L{\LB{\Ln{173      }}}
+\end{glammar}}
+
+\noindent Let K be the longest common prefix of (the values of)  {\tt x} and  {\tt y}.
+Then   {\tt tail x} and  {\tt tail y} 
+will assigned values such that   {\tt x}  = K +  {\tt tail x} and  {\tt y} = K +  {\tt tail y}.
+\label{compare.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{178      }}}
+\L{\LB{\Ln{179      }}}
+\L{\LB{\Ln{180      }\Proc{180}\index{charnum  180}\K{charnum }\D{}(pos\Flow{})\DE{}= .}}
+\L{\LB{\Ln{181      }\Proc{181}\index{settabstop  181}\K{settabstop }\D{}(\Flow{}tabstop)\DE{}= .}}
+\L{\LB{\Ln{182      }\Proc{182}\index{linenum  182}\K{linenum }\D{}(line\Flow{})\DE{}= .}}
+\L{\LB{\Ln{183      }\Proc{183}\index{length  183}\K{length }\D{}(\Flow{}in,length\Flow{})\DE{}= .}}
+\L{\LB{\Ln{184      }}}
+\end{glammar}}
+
+\noindent The affix {\tt pos} in {\tt charnum} is given the number of characters, in decimal, already recognized in the input.
+The affix {\tt tabstop} in {\tt settabstop} specifies the value (in decimal) of the variable {\tt tabstop}.
+This value is used in {\tt charnum}.
+The default value for {\tt tabstop} is {\tt 8}.
+The affix {\tt line} in {\tt linenum} is given the value (in decimal) of the current line number.
+The affix {\tt length} in {\tt length} is given the value (in decimal) of the number of characters 
+of affix {\tt in}.
+\label{charnum.}
+\label{settabstop.}
+\label{linenum.}
+\label{length.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{196      }}}
+\L{\LB{\Ln{197      }}}
+\L{\LB{\Ln{198      }\Proc{198}\index{some name  198}\K{some name }\D{}(name\Flow{})\DE{}= .}}
+\L{\LB{\Ln{199      }}}
+\end{glammar}}
+
+\noindent The affix name is given a value that is composed of 32 upper and 
+lower case letters.
+The number of characters of this name is the minimum that is necessary 
+to yield a unique name.
+Each name can occur only once.
+\label{somename.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{206      }}}
+\L{\LB{\Ln{207      }}}
+\L{\LB{\Ln{208      }}}
+\end{glammar}}
+
+\noindent GLAMMAR allows the manipulation of certain ordered sequences of pairs of values 
+for historic reasons called {\em lists} although {\em tables} would be better instead.
+{\small
+\begin{glammar}
+\L{\LB{\Ln{211      }}}
+\L{\LB{\Ln{212      }\Proc{212}\index{add to  212}\K{add to }\D{}(\Flow{}table, \Flow{}key,\Flow{}value)\DE{}= ;}}
+\L{\LB{\Ln{213      }add to \D{}(\Flow{}table, \Flow{}key,\Flow{}value)\DE{}= .}}
+\L{\LB{\Ln{214      }}}
+\end{glammar}}
+
+\noindent Each table is recorded under a name which is an arbitrary affix value 
+(it may be empty, contain newlines, be obtained from {\tt some name} etc.)
+However it may not be composite
+(i.e: {\tt  add to (>x*y,k, >v)} is not allowed).
+Initially every possible affix value is the name of an empty table.
+The builtin {\tt add to} puts the pair (K,P) in front of the table
+named L, where L,K and P are the values of {\tt table, key} and {\tt value}
+respectively.
+Upon backtracking the pair is 
+deleted from the table, unless it is forced to behave deterministic.
+\label{addto.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{226      }}}
+\L{\LB{\Ln{227      }}}
+\L{\LB{\Ln{228      }\Proc{228}\index{value of  228}\K{value of }\D{}(\Flow{}\S{}\"table\"\SE{}, \Flow{}\S{}\"key\"\SE{},value\Flow{})\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{229      }}}
+\end{glammar}}
+
+\noindent If (K,P) is the first pair, if any, in table L such that L
+and K are the values of {\tt table} and {\tt key} respectively
+(which most be both known), then the value of {\tt value} is P otherwise it
+is the empty string.
+\label{valueof.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{235      }}}
+\L{\LB{\Ln{236      }}}
+\L{\LB{\Ln{237      }\Proc{237}\index{select  237}\K{select }\D{}(\Flow{}\S{}\"table\"\SE{}, key\Flow{},value\Flow{})\DE{}=  \T{}"a"\TE{};}}
+\L{\LB{\Ln{238      }select \D{}(\Flow{}\S{}\"table\"\SE{}, key\Flow{},value\Flow{})\DE{}=  \T{}"a"\TE{};}}
+\L{\LB{\Ln{239      }select \D{}(\Flow{}\S{}\"table\"\SE{}, key\Flow{},value\Flow{})\DE{}=  \T{}"a"\TE{}.}}
+\L{\LB{\Ln{240      }}}
+\end{glammar}}
+
+\noindent The values of key and value are K and P respectively, where (K,P)
+is any pair in the table L, where L is the value of {\tt table} (which must be known).
+Note that {\tt select} succeeds once for each pair.
+\label{select.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{245      }}}
+\L{\LB{\Ln{246      }\Proc{246}\index{delete  246}\K{delete }\D{}(\Flow{}\S{}\"table\"\SE{}, key\Flow{},value\Flow{})\DE{}=  \T{}"a"\TE{};}}
+\L{\LB{\Ln{247      }delete \D{}(\Flow{}\S{}\"table\"\SE{}, key\Flow{},value\Flow{})\DE{}=  \T{}"a"\TE{};}}
+\L{\LB{\Ln{248      }delete \D{}(\Flow{}\S{}\"table\"\SE{}, key\Flow{},value\Flow{})\DE{}=  \T{}"a"\TE{}.}}
+\L{\LB{\Ln{249      }}}
+\end{glammar}}
+
+\label{delete.}
+\noindent {\tt delete} is quite a  strange predicate.
+Basically it deletes all pairs in the table, one at a time.
+When a pair is deleted,  upon backtracking the  deleted item is 
+not restored. 
+Instead one more element is deleted,
+until the table is empty.
+{\small
+\begin{glammar}
+\L{\LB{\Ln{257      }}}
+\L{\LB{\Ln{258      }}}
+\L{\LB{\Ln{259      }}}
+\L{\LB{\Ln{260      }\Proc{260}\index{contents of  260}\K{contents of }\D{}(\Flow{}\S{}\"table\"\SE{},\Flow{}pair pair sep, \Flow{}key val sep, contents\Flow{})\DE{}=  \T{}"a"\TE{}.}}
+\L{\LB{\Ln{261      }}}
+\end{glammar}}
+
+\label{contentsof.}
+\noindent {\tt contents of} finds the contents of a table in one go, provided
+the table is not empty.
+The list of pairs are separated with {\tt pair pair sep} and
+the two elements of a pair are separated by {\tt key val sep}.
+{\small
+\begin{glammar}
+\L{\LB{\Ln{267      }}}
+\L{\LB{\Ln{268      }}}
+\L{\LB{\Ln{269      }\Proc{269}\index{size  269}\K{size }\D{}(\Flow{}\S{}\"table\"\SE{}, size\Flow{})\DE{}=  .}}
+\L{\LB{\Ln{270      }}}
+\end{glammar}}
+
+\label{size.}
+\noindent Affix {\tt size} is given the number of pairs of {\tt table}, in decimal notation.
+{\small
+\begin{glammar}
+\L{\LB{\Ln{273      }}}
+\L{\LB{\Ln{274      }\Proc{274}\index{lookup  274}\K{lookup }\D{}(\Flow{}\S{}\"table\"\SE{}, \Flow{}\S{}\"key\"\SE{},value\Flow{})\DE{}=  \T{}"a"\TE{}.}}
+\L{\LB{\Ln{275      }}}
+\end{glammar}}
+
+\noindent {\tt lookup} finds the first pair in the table with matching key.
+It fails if there is no such pair.
+\label{lookup.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{279      }}}
+\L{\LB{\Ln{280      }}}
+\L{\LB{\Ln{281      }\Proc{281}\index{includes  281}\K{includes }\D{}(\Flow{}\S{}\"table\"\SE{}, \Flow{}\S{}\"key\"\SE{})\DE{}=  \T{}"a"\TE{}.}}
+\L{\LB{\Ln{282      }\Proc{282}\index{excludes  282}\K{excludes }\D{}(\Flow{}\S{}\"table\"\SE{}, \Flow{}\S{}\"key\"\SE{})\DE{}=  \T{}"a"\TE{}.}}
+\L{\LB{\Ln{283      }}}
+\end{glammar}}
+
+\noindent Above predicates succeed if there is a (no) pair (K,P) in table L where
+L and K  are the values of table and key respectively.
+\label{includes.}
+\label{excludes.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{288      }}}
+\L{\LB{\Ln{289      }}}
+\L{\LB{\Ln{290      }\C{}\#plain\CE{}}}
+\L{\LB{\Ln{291      }\Proc{291}\index{pair  291}\K{pair }\D{}(cell\Flow{}, \Flow{}key,\Flow{}value)\DE{}=  .}}
+\L{\LB{\Ln{292      }\C{}\#plain\CE{}}}
+\L{\LB{\Ln{293      }\Proc{293}\index{unpair  293}\K{unpair }\D{}(\Flow{}\S{}\"cell\"\SE{}, key\Flow{},value\Flow{})\DE{}=  \T{}"a"\TE{}.}}
+\L{\LB{\Ln{294      }}}
+\end{glammar}}
+
+\label{pair.}
+\label{unpair.}
+\noindent In addition to the table (tables) processing builtin rules there are three builtin rules
+which work on named tuples.
+Each tuple has a unique name.
+You can always work avoid using the predicates {\tt pair} and {\tt unpair}.
+Both are  generated by eliminating  the composition operator.
+For example the following two rules are equal:
+{\small
+\begin{glammar}
+\L{\LB{}}
+\L{\LB{    \Proc{2}\K{b }\index{b 2}\D{}(\>L1)\DE{}:}}
+\L{\LB{         unpair \D{}(\>L1,a\>,L2\>)\DE{},}}
+\L{\LB{         unpair \D{}(\>L2,b\>,c\>)\DE{}.}}
+\L{\LB{}}
+\L{\LB{    \Proc{6}\K{b }\index{b 6}\D{}( \>a*b*c)\DE{}:.}}
+\end{glammar}}
+If the left position is applying instead of defining {\tt unpair} must be replaced with  {\tt pair}.
+{\small
+\begin{glammar}
+\L{\LB{\Ln{313      }}}
+\L{\LB{\Ln{314      }}}
+\L{\LB{\Ln{315      }\Proc{315}\index{repair  315}\K{repair }\D{}(\Flow{}\S{}\"cell\"\SE{}, \Flow{}key,\Flow{}value)\DE{}= \T{}"a"\TE{};}}
+\L{\LB{\Ln{316      }repair \D{}(\Flow{}\S{}\"cell\"\SE{}, \Flow{}key,\Flow{}value)\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{317      }}}
+\end{glammar}}
+ 
+\noindent {\tt repair} updates the earlier created cell (with {\tt pair}) with new values.
+Upon backtracking this is undone unless deterministic behavior is forced.
+{\tt repair} fails if there is no tuple {\tt (key,value)} with name {\tt cell}.
+\label{repair.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{322      }}}
+\L{\LB{\Ln{323      }}}
+\L{\LB{\Ln{324      }\C{}\#plain\CE{}}}
+\L{\LB{\Ln{325      }\Proc{325}\index{where  325}\K{where }\D{}(\Flow{}x,x\Flow{})\DE{}=.}}
+\L{\LB{\Ln{326      }}}
+\end{glammar}}
+
+\noindent Because the composition operator is right associative, brackets are needed
+to denote certain structures.
+Glammar does not allow you to write brackets in affix expressions.
+For example  {\tt >a*(x*y)*c} is not allowed.
+You can however make such structures using {\tt where}.
+For example :
+{\small
+\begin{glammar}
+\L{\LB{   \Proc{2}\K{t }\index{t 2}\D{}(\>a*b*c)\DE{}:}}
+\L{\LB{       my own where \D{}(\>b,x*y\>)\DE{}.}}
+\L{\LB{}}
+\L{\LB{   \Proc{5}\K{my own where }\index{my own where 5}\D{}(\>x,x\>)\DE{}:.}}
+\end{glammar}}
+After the composition operator is removed :
+{\small
+\begin{glammar}
+\L{\LB{    \Proc{2}\K{t }\index{t 2}\D{}(\>L1)\DE{}:}}
+\L{\LB{        unpair \D{}(\>L1,a\>,L2\>)\DE{},}}
+\L{\LB{        unpair \D{}(\>L2,b\>,c\>)\DE{},}}
+\L{\LB{        my own where \D{}(\>b,L3\>)\DE{},}}
+\L{\LB{        unpair \D{}(\>L3,x\>,y\>)\DE{}.}}
+\L{\LB{}}
+\L{\LB{    \Proc{8}\K{my own where }\index{my own where 8}\D{}(\>x,x\>)\DE{}:.}}
+\end{glammar}}
+\noindent It is obvious that {\tt my own where} has become superfluous if we substitute
+{\tt b} for {\tt L3}.
+This is the reason why there is a predefined built-in {\tt where}.
+The compiler tries to remove {\tt where} if it is possible by renaming affixes.
+So when used {\tt where} instead of {\tt my our own where} the result after transformation
+would have been :
+{\small
+\begin{glammar}
+\L{\LB{\Proc{1}\K{t }\index{t 1}\D{}(\>L1)\DE{}:}}
+\L{\LB{    unpair \D{}(\>L1,a\>,L2\>)\DE{},}}
+\L{\LB{    unpair \D{}(\>L2,b\>,c\>)\DE{},}}
+\L{\LB{    unpair \D{}(\>b,x\>,y\>)\DE{}.}}
+\L{\LB{}}
+\end{glammar}}
+\label{where.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{366      }}}
+\L{\LB{\Ln{367      }}}
+\L{\LB{\Ln{368      }\Proc{368}\index{lexical less  368}\K{lexical less }\D{}(\Flow{}\S{}\"x\"\SE{},\Flow{}\S{}\"y\"\SE{})\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{369      }\Proc{369}\index{lexical more  369}\K{lexical more }\D{}(\Flow{}\S{}\"x\"\SE{},\Flow{}\S{}\"y\"\SE{})\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{370      }\Proc{370}\index{lexical less equal  370}\K{lexical less equal }\D{}(\Flow{}\S{}\"x\"\SE{},\Flow{}\S{}\"y\"\SE{})\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{371      }\Proc{371}\index{lexical more equal  371}\K{lexical more equal }\D{}(\Flow{}\S{}\"x\"\SE{},\Flow{}\S{}\"y\"\SE{})\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{372      }}}
+\end{glammar}}
+
+\noindent These builtin rules compare affixes using their lexical ordering.
+\label{lexicalless.}
+\label{lexicalmore.}
+\label{lexicallessequal.}
+\label{lexicalmoreequal.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{378      }}}
+\L{\LB{\Ln{379      }}}
+\L{\LB{\Ln{380      }\Proc{380}\index{compute  380}\K{compute }\D{}(\Flow{}expr, result\Flow{})\DE{}= .}}
+\L{\LB{\Ln{381      }}}
+\end{glammar}}
+
+\noindent If  {\tt expr} is a string representing a simple expression (like  {\tt 2*(3+1)})
+ {\tt result} will assigned the value of this expression in decimal ( {\tt 8}).
+The expression may only contain the one-character operators $! < > = + - * /$ and
+signed integer notation.
+The maximum integer value is inherited from the C value for this.  
+Booleans are implemented as $\{0,X\}$,  where $0$ denotes {\tt false}, anything 
+else (preferably $1$) is taken to be {\tt true}. 
+Anything not an operator or integral number (spaces included) terminates 
+the expression.
+A badly formed expression however gives an error message. 
+For arbitrary precision arithmetic you can set up a connection to the unix
+program {\tt dc}.
+\label{compute.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{395      }}}
+\L{\LB{\Ln{396      }\Proc{396}\index{realtoint  396}\K{realtoint }\D{}(\Flow{}number, result\Flow{})\DE{}= .}}
+\L{\LB{\Ln{397      }}}
+\end{glammar}}
+ 
+\noindent Converts a decimal real in scientific notation to the nearest decimal integer not greater than real.
+\label{realtoint.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{400      }}}
+\L{\LB{\Ln{401      }\Proc{401}\index{decimal to unary  401}\K{decimal to unary }\D{}(\Flow{}number, result\Flow{})\DE{}= .}}
+\L{\LB{\Ln{402      }}}
+\end{glammar}}
+ 
+\noindent Converts a decimal integer value to unary with base notation {\tt 1}.
+\label{decimaltounary.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{405      }}}
+\L{\LB{\Ln{406      }}}
+\L{\LB{\Ln{407      }\Proc{407}\index{identifier  407}\K{identifier }\D{}(x\Pl{}y\Flow{})\DE{}= !\T{}AB..Za..z\TE{}! \D{}(x\>)\DE{}, !\T{}A..Za..z1..0\'\_\TE{}! * \D{}(y\>)\DE{}.}}
+\L{\LB{\Ln{408      }\Proc{408}\index{letter digit sequence  408}\K{letter digit sequence }\D{}(x\Pl{}y\Flow{})\DE{}= !\T{}AB..Za..z\TE{}! \D{}(x\>)\DE{}, !\T{}A..Za..z1..0\TE{}! * \D{}(y\>)\DE{}.}}
+\L{\LB{\Ln{409      }}}
+\end{glammar}}
+ 
+\noindent These scan  an identifier as specified but 
+slightly more efficiently.
+\label{identifier.}
+\label{letterdigitsequence.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{414      }}}
+\L{\LB{\Ln{415      }}}
+\L{\LB{\Ln{416      }\Proc{416}\index{upper case  416}\K{upper case }\D{}(\Flow{}str, result\Flow{})\DE{}= .}}
+\L{\LB{\Ln{417      }}}
+\end{glammar}}
+ 
+\noindent {\tt upper case} transforms a value with mixed cased letters to a upper cased value.
+\label{uppercase.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{420      }}}
+\L{\LB{\Ln{421      }}}
+\L{\LB{\Ln{422      }\Proc{422}\index{lower case  422}\K{lower case }\D{}(\Flow{}str, result\Flow{})\DE{}= .}}
+\L{\LB{\Ln{423      }}}
+\end{glammar}}
+ 
+\noindent {\tt lower case} transforms a value with mixed cased letters to a lower cased value.
+\label{lowercase.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{426      }}}
+\L{\LB{\Ln{427      }}}
+\L{\LB{\Ln{428      }\Proc{428}\index{keyword  428}\K{keyword }\D{}(\Flow{}\S{}\"upper case word\"\SE{})\DE{}=  \T{}"a"\TE{}.}}
+\L{\LB{\Ln{429      }}}
+\end{glammar}}
+ 
+\noindent Matches an upper case word to lower or mixed case input.
+So keyword\verb+(>"IF")+ scans {\tt if}, {\tt IF}, {\tt If}, and {\tt iF}.
+\label{keyword.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{433      }}}
+\L{\LB{\Ln{434      }}}
+\L{\LB{\Ln{435      }}}
+\L{\LB{\Ln{436      }\Proc{436}\index{white space 436}\K{white space}\D{}(w\Flow{})\DE{} = !\T{}\!n\!t\!f\!r \TE{}!*\D{}(w\>)\DE{}. }}
+\L{\LB{\Ln{437      }\Proc{437}\index{layout 437}\K{layout}\D{}(l\Flow{})\DE{} = !\T{}\!n\!t\!f \TE{}!*. }}
+\L{\LB{\Ln{438      }}}
+\end{glammar}}
+ 
+\noindent You can use this rule to skip spaces, tabs,  carriage returns, newlines, vertical tabs, and form feeds.
+\label{layout.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{441      }}}
+\L{\LB{\Ln{442      }}}
+\L{\LB{\Ln{443      }\Proc{443}\index{type out  443}\K{type out }\D{}(\Flow{}affix)\DE{}=.}}
+\L{\LB{\Ln{444      }}}
+\end{glammar}}
+ 
+\noindent Write the value of affix to stderr.
+\label{typeout.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{447      }}}
+\L{\LB{\Ln{448      }}}
+\L{\LB{\Ln{449      }\Proc{449}\index{type in  449}\K{type in }\D{}(affix\Flow{})\DE{}=.}}
+\L{\LB{\Ln{450      }}}
+\end{glammar}}
+
+\noindent Read affix from stdin.
+\label{typein.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{453      }}}
+\L{\LB{\Ln{454      }}}
+\L{\LB{\Ln{455      }\Proc{455}\index{report  455}\K{report }\D{}(\Flow{}affix)\DE{}=.}}
+\L{\LB{\Ln{456      }}}
+\end{glammar}}
+ 
+\noindent Write the value of affix to the default output.
+\label{report.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{459      }}}
+\L{\LB{\Ln{460      }}}
+\L{\LB{\Ln{461      }\Proc{461}\index{fail  461}\K{fail }= not equal \D{}(\Flow{}empty,\Flow{}empty)\DE{}\index{not equal  !fail }.}}
+\L{\LB{\Ln{462      }}}
+\end{glammar}}
+
+\noindent {\tt fail} just always fails. 
+\label{fail.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{465      }}}
+\L{\LB{\Ln{466      }}}
+\L{\LB{\Ln{467      }\C{}\#plain\CE{}}}
+\L{\LB{\Ln{468      }\Proc{468}\index{cut 468}\K{cut}= .}}
+\L{\LB{\Ln{469      }}}
+\end{glammar}}
+
+\noindent This predicate forces the next productions --- if any --- to fail. 
+This member may also be written as {\tt ->}, and can be removed
+by adding complementary members to all other productions.
+\label{cut.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{474      }}}
+\L{\LB{\Ln{475      }}}
+\L{\LB{\Ln{476      }\Proc{476}\index{eval affix  476}\K{eval affix }\D{}(\Flow{}a,evaluated a\Flow{})\DE{}= .}}
+\L{\LB{\Ln{477      }}}
+\end{glammar}}
+
+\noindent This predicate reduces the evaluation count at 
+run time (see -r option) for deterministic grammars.
+Nondeterministic grammars overwrite the result of an affix evaluation 
+and restore the original value upon backtracking.
+Since deterministic grammars do not need to backtrack the original value 
+cannot be restored that easily. 
+Instead, the result of the affix evaluation is lost which means 
+that the same affix most be evaluated over and over again.
+If you wish to make your compiler as efficient as possible
+and you know that some affixes are tested frequently you can first 
+evaluate these affixes and use the results in the rest of the computation.
+\label{evalaffix.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{490      }}}
+\L{\LB{\Ln{491      }}}
+\L{\LB{\Ln{492      }\Proc{492}\index{set line file  492}\K{set line file }\D{}(\Flow{}line,\Flow{}file)\DE{}= ;}}
+\L{\LB{\Ln{493      }set line file \D{}(\Flow{}line,\Flow{}file)\DE{}= .}}
+\L{\LB{\Ln{494      }\Proc{494}\index{get line file  494}\K{get line file }\D{}(line\Flow{},file\Flow{})\DE{}= ;}}
+\L{\LB{\Ln{495      }get line file \D{}(line\Flow{},file\Flow{})\DE{}= .}}
+\L{\LB{\Ln{496      }}}
+\end{glammar}}
+
+\label{setlinefile.}
+\label{getlinefile.}
+\noindent Line and file control.
+In order to produce correct messages when the input was
+the output of a preprocessor there is a predicate which
+sets the current file name and line number.
+{\small
+\begin{glammar}
+\L{\LB{\Ln{503      }}}
+\L{\LB{\Ln{504      }}}
+\L{\LB{\Ln{505      }\Proc{505}\index{get next option  505}\K{get next option }\D{}(option\Flow{})\DE{}=.}}
+\L{\LB{\Ln{506      }}}
+\end{glammar}}
+
+\noindent This predicate gets the next option (the first one will be the command name) 
+from the command line that invoked the program. 
+It fails if all option are processed.
+\label{getnextoption.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{511      }}}
+\L{\LB{\Ln{512      }}}
+\L{\LB{\Ln{513      }\Proc{513}\index{get env  513}\K{get env }\D{}(\Flow{}\S{}\"name\"\SE{}, val\Flow{})\DE{}=.}}
+\L{\LB{\Ln{514      }}}
+\end{glammar}}
+
+\noindent {\tt get env} searches the value of the environment variable. 
+It fails if the environment variable is not defined. 
+\label{getenv.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{518      }}}
+\L{\LB{\Ln{519      }}}
+\L{\LB{\Ln{520      }\Proc{520}\index{error message  520}\K{error message }\D{}(val\Flow{})\DE{}=.}}
+\L{\LB{\Ln{521      }}}
+\end{glammar}}
+
+\noindent {\tt error message} generates on error message based upon the 
+most advanced input pointer.
+It causes to suppress output generation,
+and the exit status will be {\tt 1}.
+It can also be used to implement error recovery.
+\label{errormessage.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{528      }}}
+\L{\LB{\Ln{529      }\Proc{529}\index{set exit code 529}\K{set exit code}=.}}
+\L{\LB{\Ln{530      }}}
+\end{glammar}}
+
+\label{setexitcode.}
+\noindent This predicates sets the exit code to {\tt 2},
+but output generation is not suppressed. 
+{\small
+\begin{glammar}
+\L{\LB{\Ln{534      }}}
+\L{\LB{\Ln{535      }}}
+\L{\LB{\Ln{536      }\Proc{536}\index{assign  536}\K{assign }\D{}(\Flow{}x,\Flow{}y,old x\Flow{})\DE{}=;}}
+\L{\LB{\Ln{537      }assign \D{}(\Flow{}x,\Flow{}y,old x\Flow{})\DE{}=.}}
+\L{\LB{\Ln{538      }}}
+\end{glammar}}
+
+\noindent {\tt assign} is a very tricky predicate and therefore its use is not recommended.
+Basically it makes it possible to avoid adding inherited affix positions if
+these affixes change in rare cases only.
+If this is the case you can let a meta notion take another value,
+although this sometimes give surprising results.
+For example in many cases it is necessary to copy the meta notion
+(when putting it in tables etc.),
+because of the fact that on an affix expression
+containing  the  meta notion,
+an assignation of that meta notion
+has effect on previous evaluations of that affix expression
+(consistent substitution is not guaranteed.)
+\label{assign.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{552      }}}
+\L{\LB{\Ln{553      }}}
+\L{\LB{\Ln{554      }}}
+\L{\LB{\Ln{555      }\Proc{555}\index{get from unix  555}\K{get from unix }\D{}(\Flow{}cmd, cmd stdout\Flow{})\DE{}=.}}
+\L{\LB{\Ln{556      }\Proc{556}\index{write file  556}\K{write file }\D{}(\Flow{}file, \Flow{}file contents)\DE{}=.}}
+\L{\LB{\Ln{557      }\Proc{557}\index{system 557}\K{system}\D{}(\Flow{}system)\DE{}=.}}
+\L{\LB{\Ln{558      }}}
+\end{glammar}}
+ 
+\noindent The most simple and reliable way to get some information from unix
+is to give a command,  wait for the command to exit and store
+the result it produced.
+Examples of such unix utility programs are {\tt date, cat, ls} etc.
+None of them need any input.
+\label{getfromunix.}
+\label{write file.}
+\label{system}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{567      }}}
+\L{\LB{\Ln{568      }}}
+\L{\LB{\Ln{569      }\Proc{569}\index{set up connection to unix  569}\K{set up connection to unix }\D{}(\Flow{}cmd,\Flow{}channel)\DE{}=.}}
+\L{\LB{\Ln{570      }\Proc{570}\index{talk to unix  570}\K{talk to unix }\D{}(\Flow{}channel,\Flow{}to the programs stdin,from the programs stdout\Flow{})\DE{}=.}}
+\L{\LB{\Ln{571      }}}
+\end{glammar}}
+
+\noindent These two builtin rules are only available on an unix-system.
+They can be used to set up and maintain a connection 
+to unix.
+Only 32 connections can be made at a time.
+When this limit is exceeded {\tt setup connection to unix} fails.
+
+Useful programs to connect with are for instance {\tt dc} for
+arbitrary precision arithmetic, or perhaps a program 
+written by yourself.
+The lexicon interface also is implemented with connections.
+ 
+As an example we will maintain a connection to {\tt dc}.
+First we set up the connection.
+{\small
+\begin{glammar}
+\L{\LB{ \Proc{1}\K{s}\index{s1}:}}
+\L{\LB{ set up connection with unix \D{}(\>\S{}\"dc \"\SE{},\>DC CON)\DE{}.}}
+\end{glammar}}
+\noindent Here DC CON is a meta defined affix specifying the channel number.
+This channel is assigned to the meta rule by the set up builtin;
+initially it may be defined as empty (eg : DC CON::.).
+ 
+Next we can give input to this program's {\tt stdin} and get the answer from
+the program's {\tt stdout}. For example   
+{\small
+\begin{glammar}
+\L{\LB{  \Proc{2}\K{x}\index{x2}:}}
+\L{\LB{    talk to unix \D{}(\>DC CON , \>\S{}\"1 2 +ps.\!n\"\SE{},\S{}\"3\"\SE{}\>)\DE{}.}}
+\end{glammar}}
+\noindent will succeed.
+Because the builtin  {\tt talk to unix} first supplies input to the \
+unix-program and then waits for the answer communication problems can occur.
+To solve this problem a very simple (not very reliable)  strategy is used:
+As soon as a control character is read  the answer reading is stopped
+and the result so far is  made the total result. Caveat:
+the next time the builtin is called there might be some output left from previous
+ calls.  Also one has to take care that there always will be an answer. 
+For instance in the above example the newline in the input given to 
+{\tt talk to unix} is essential because {\tt dc} waits for it  before generating
+any output, so both processes would have been locked forever ("deadlock")
+if this new line was omitted.
+\label{setupconnectiontounix.}
+\label{talktounix.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{615      }}}
+\L{\LB{\Ln{616      }}}
+\L{\LB{\Ln{617      }}}
+\L{\LB{\Ln{618      }}}
+\end{glammar}}
+ 
+\noindent The following builtin rules are for internal usage and should therefore not be
+used in your own grammar.
+It is not possible to redefine these builtin rules and when its name is followed 
+by an underscore it is also not possible to use the builtin  yourself.  
+\label{resetinputptr.} 
+\label{setinputptrto.}
+\label{getlist_.}
+\label{nestarset.}
+\label{nestarset.}
+\label{nestarset.}
+\label{nestaralt.}
+\label{metaterminal.}
+\label{intersect.}
+\label{explintersect.}
+\label{transformlattice.}
+\label{tltraditional.}
+\label{tltraditional.}
+\label{tltraditional.}
+\label{transformlatticeterm.}
+\label{tltraditionalterm.}
+\label{tltraditionalterm.}
+\label{tltraditionalterm.}
+\label{initmint.}
+\label{initmeta.}
+\label{evalmeta.}
+\label{getip.}
+\label{restoreip.}
+\label{falseip.}
+\label{skip.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{648      }}}
+\L{\LB{\Ln{649      }}}
+\L{\LB{\Ln{650      }\Proc{650}\index{reset inputptr 650}\K{reset inputptr\_ }\D{}(\Flow{}saved ip)\DE{}= .}}
+\L{\LB{\Ln{651      }\Proc{651}\index{set inputptr to 651}\K{set inputptr to\_ }\D{}(\Flow{}x,saved ip\Flow{})\DE{}= .}}
+\L{\LB{\Ln{652      }\Proc{652}\index{getlist 652}\K{getlist\_ }\D{}(a\Flow{})\DE{}= .}}
+\L{\LB{\Ln{653      }\Proc{653}\index{detnestarset  653}\K{detnestarset }\D{}(a\Flow{})\DE{}= ;}}
+\L{\LB{\Ln{654      }detnestarset \D{}(a\Flow{})\DE{}= .}}
+\L{\LB{\Ln{655      }\Proc{655}\index{nestarset  655}\K{nestarset }\D{}(a\Flow{})\DE{}= ;}}
+\L{\LB{\Ln{656      }nestarset \D{}(a\Flow{})\DE{}= ;}}
+\L{\LB{\Ln{657      }nestarset \D{}(a\Flow{})\DE{}= .}}
+\L{\LB{\Ln{658      }\Proc{658}\index{nestaralt 658}\K{nestaralt\_ }\D{}(a\Flow{},\Flow{}saved ip)\DE{}= .}}
+\L{\LB{\Ln{659      }\Proc{659}\index{metaterminal  659}\K{metaterminal }\D{}(\Flow{}\S{}\"m\"\SE{})\DE{}=  \T{}"a"\TE{}.}}
+\L{\LB{\Ln{660      }\Proc{660}\index{intersect 660}\K{intersect\_ }\D{}(\Flow{}a,\Flow{}b)\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{661      }\Proc{661}\index{explintersect 661}\K{explintersect\_ }\D{}(\Flow{}a,\Flow{}b)\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{662      }\Proc{662}\index{transform lattice 662}\K{transform lattice\_ }\D{}( \Flow{}a,\Flow{}b,c\Flow{})\DE{}= .}}
+\L{\LB{\Ln{663      }\Proc{663}\index{tl traditional 663}\K{tl traditional\_ }\D{}( \Flow{}a,\Flow{}b,c\Flow{})\DE{}= ;}}
+\L{\LB{\Ln{664      }tl traditional\_ \D{}( \Flow{}a,\Flow{}b,c\Flow{})\DE{}= ;}}
+\L{\LB{\Ln{665      }tl traditional\_ \D{}( \Flow{}a,\Flow{}b,c\Flow{})\DE{}= .}}
+\L{\LB{\Ln{666      }\Proc{666}\index{transform latticeterm 666}\K{transform latticeterm\_ }\D{}( \Flow{}a,\Flow{}b,c\Flow{})\DE{}= .}}
+\L{\LB{\Ln{667      }\Proc{667}\index{tl traditionalterm 667}\K{tl traditionalterm\_ }\D{}( \Flow{}a,\Flow{}b,c\Flow{})\DE{}= ;}}
+\L{\LB{\Ln{668      }tl traditionalterm\_ \D{}( \Flow{}a,\Flow{}b,c\Flow{})\DE{}= ;}}
+\L{\LB{\Ln{669      }tl traditionalterm\_ \D{}( \Flow{}a,\Flow{}b,c\Flow{})\DE{}= .}}
+\L{\LB{\Ln{670      }\Proc{670}\index{init mint 670}\K{init mint\_ }\D{}( \Flow{}a,\Flow{}b)\DE{}= .}}
+\L{\LB{\Ln{671      }\Proc{671}\index{initmeta  671}\K{initmeta }\D{}( \Flow{}a,\Flow{}b)\DE{}= .}}
+\L{\LB{\Ln{672      }\Proc{672}\index{evalmeta  672}\K{evalmeta }\D{}( \Flow{}a)\DE{}= .}}
+\L{\LB{\Ln{673      }\Proc{673}\index{get ip 673}\K{get ip\_ }\D{}( ip\Flow{})\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{674      }\Proc{674}\index{restore ip 674}\K{restore ip\_ }\D{}( \Flow{}ip)\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{675      }\Proc{675}\index{false ip 675}\K{false ip\_ }\D{}( \Flow{}ip)\DE{}= \T{}"a"\TE{}.}}
+\L{\LB{\Ln{676      }\Proc{676}\index{skip 676}\K{skip\_}= ;}}
+\L{\LB{\Ln{677      }skip\_= ;}}
+\L{\LB{\Ln{678      }skip\_= .}}
+\L{\LB{\Ln{679      }}}
+\L{\LB{\Ln{680      }}}
+\L{\LB{\Ln{681      }}}
+\end{glammar}}
+
+\noindent The following builtin rules implement multiple precision integer
+arithmetic.
+These are implemented using the unix standard package {\tt mp}.
+Some implementations of unix do however not support 
+this package.
+More information can be found in the manual page for {\tt mp}.
+\label{equalto.}
+\label{lessthan.}
+\label{morethan.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{691      }}}
+\L{\LB{\Ln{692      }\Proc{692}\K{equal to }::\S{}\"0\"\SE{}.}}
+\L{\LB{\Ln{693      }\Proc{693}\K{less than }::\S{}\"\-1\"\SE{}.}}
+\L{\LB{\Ln{694      }\Proc{694}\K{more than }::\S{}\"1\"\SE{}.}}
+\L{\LB{\Ln{695      }}}
+\L{\LB{\Ln{696      }}}
+\end{glammar}}
+
+\label{intplusintisint.}
+\label{intsubintisint.}
+\label{inttimesintisint.}
+\label{intdividedbyintisintwithremainderint.}
+\label{intisint.}
+\label{intraisedbyintmodulointisint.}
+\label{intisthegcdofintandint.}
+\label{intisthesquarerootofintwithremainderint.}
+\label{intisdec.}
+\label{decisint.}
+\label{freeint.}
+\label{decrementsmallint.}
+\label{incrementsmallint.}
+\label{smalldecisint.}
+\label{intisnegative.}
+\label{negateint.}
+\label{intispositive.}
+\label{intiszero.}
+{\small
+\begin{glammar}
+\L{\LB{\Ln{715      }}}
+\L{\LB{\Ln{716      }\Proc{716}\index{int plus int is int  716}\K{int }\D{}(\Flow{}a)\DE{} \K{plus int }\D{}(\Flow{}b)\DE{} \K{is int }\D{}(c\Flow{})\DE{}=.}}
+\L{\LB{\Ln{717      }\Proc{717}\index{int sub int is int  717}\K{int }\D{}(\Flow{}a)\DE{} \K{sub int }\D{}(\Flow{}b)\DE{} \K{is int }\D{}(c\Flow{})\DE{}=.}}
+\L{\LB{\Ln{718      }\Proc{718}\index{int times int is int  718}\K{int }\D{}(\Flow{}a)\DE{} \K{times int }\D{}(\Flow{}b)\DE{} \K{is int }\D{}(c\Flow{})\DE{}=.}}
+\L{\LB{\Ln{719      }\Proc{719}\index{int divided by int is int with remainder int  719}\K{int }\D{}(\Flow{}a)\DE{} \K{divided by int }\D{}(\Flow{}b)\DE{} \K{is int }\D{}(q\Flow{})\DE{} \K{with remainder int }\D{}(r\Flow{})\DE{}=.}}
+\L{\LB{\Ln{720      }\Proc{720}\index{int is int  720}\K{int }\D{}(\Flow{}a)\DE{} \K{is }\D{}(c\Flow{})\DE{} \K{int }\D{}(\Flow{}b)\DE{}=.}}
+\L{\LB{\Ln{721      }\Proc{721}\index{int raised by int modulo int is int  721}\K{int }\D{}(\Flow{}a)\DE{} \K{raised by int }\D{}(\Flow{}b)\DE{} \K{modulo int }\D{}(\Flow{}d)\DE{} \K{is int }\D{}(r\Flow{})\DE{}=.}}
+\L{\LB{\Ln{722      }\Proc{722}\index{int is the gcd of int and int  722}\K{int }\D{}(c\Flow{})\DE{} \K{is the gcd of int }\D{}(\Flow{}a)\DE{} \K{and int }\D{}(\Flow{}b)\DE{}=.}}
+\L{\LB{\Ln{723      }\Proc{723}\index{int is the square root of int with remainder int  723}\K{int }\D{}(s\Flow{})\DE{} \K{is the square root of int }\D{}(\Flow{}a)\DE{} \K{with remainder int }\D{}(r\Flow{})\DE{}=.}}
+\L{\LB{\Ln{724      }\Proc{724}\index{int is dec  724}\K{int }\D{}(\Flow{}a)\DE{} \K{is dec }\D{}(dec a\Flow{})\DE{}=.}}
+\L{\LB{\Ln{725      }\Proc{725}\index{dec is int  725}\K{dec }\D{}(\Flow{}a)\DE{} \K{is int }\D{}(int a\Flow{})\DE{}=.}}
+\L{\LB{\Ln{726      }\Proc{726}\index{free int  726}\K{free int }\D{}(\Flow{}d)\DE{}=.}}
+\L{\LB{\Ln{727      }\Proc{727}\index{decrement small int  727}\K{decrement small int }\D{}(\Flow{}d)\DE{}=.}}
+\L{\LB{\Ln{728      }\Proc{728}\index{increment small int  728}\K{increment small int }\D{}(\Flow{}d)\DE{}=.}}
+\L{\LB{\Ln{729      }\Proc{729}\index{small dec is int  729}\K{small dec }\D{}(\Flow{}d)\DE{} \K{is int }\D{}(i\Flow{})\DE{}=.}}
+\L{\LB{\Ln{730      }\Proc{730}\index{int is negative 730}\K{int }\D{}(\Flow{}a)\DE{} \K{is negative}=.}}
+\L{\LB{\Ln{731      }\Proc{731}\index{negate int  731}\K{negate int }\D{}(\Flow{}a)\DE{} =.}}
+\L{\LB{\Ln{732      }\Proc{732}\index{int is positive 732}\K{int }\D{}(\Flow{}a)\DE{} \K{is positive}=.}}
+\L{\LB{\Ln{733      }\Proc{733}\index{int is zero 733}\K{int }\D{}(\Flow{}a)\DE{} \K{is zero}=.}}
+\L{\LB{\Ln{734      }}}
+\L{\LB{\Ln{735      }}}
+\L{\LB{\Ln{736      }}}
+\end{glammar}}
+\input{\jobname.ind}
+\end{document}
+
+

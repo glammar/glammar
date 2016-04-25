@@ -1,0 +1,243 @@
+version 2.18 [ evoss 140930]
+   - add base64 encode /decode
+version 2.17 [ evoss 140103]
+  - add glammar-c.a (contains all gg*.o objects) such that glammar exe can be made
+      like in gcc -o glammar glammar-c.a, such that we can use the same code regardless
+       of libgcc version and avoids the need to static linking which requires additional rpms 
+version 2.16 [ evoss 131220]
+   - fixed compiler bug in idenfification (when encountering undefined hyper rule)
+   - fixed conpiler bug in code generation of duplicate left def affixes 
+version 2.13 [evoss 130821] 
+    - added  builtin "to utc" that converts a date to utc
+version 2.12 [evoss 130630] 
+   - fixed another bug in move_terms_up (gg06.c)
+version 2.11 [evoss 130530] 
+    - fix coredump in gg06.c (move_terms_up)
+    - fix readinput (last input character was removed in certain case)
+Version 2.10  [evoss 130417] 
+    - various bugs (static meta defs and assign conflicts which shows when compiling with -O) 
+    - move up unpair which allows more affix expressionn optimizations.
+
+Version 2.08  [evoss 130214]
+   - Generated script prints an educated guess of last interesting failing hyper rule and parent 
+      in addition to syntax error on line msg
+   - fixed level reporting
+   - some minor eag affix expression enhancements  and a fix 
+   - added --option support for  generated grammars
+
+Version 2.07  [evoss 130205] 
+    - more eag affix expression enhancements. Now deterministic: 
+        lhs (>a+y): ^!!(y>). 
+        lhs (>a+y+z): ^!!(y>)   # -d flag
+        lhs (>a+META): . 
+        lhs (>a+y+META): ^!!(y>). 
+             
+     This required moving up terminals over predicates and redirected members.
+     Added metaterminal2_ builtin
+     
+     - added METATAB meta constant. 
+     - All METAS are added to table "METATAB".
+        rhs  lookup(>METATAB, >"nlcr", nlcr>) succeeds.  
+
+Version 2.06  [evoss 130131] 
+    - eag affix expression fix (translate t(>a, >a+"i"+r) to si, metaterminal(>a), "i", anest(r>) 
+Version 2.05
+    - enhance talktounix to allow escaped blanks in a single arg 
+    - do no truncate the gtags file before writing 
+    - fix non deterministic compile error, choice coders where not generated 
+Version 2.04 
+    - fix index file
+    - generate sorted gtags file
+    - add glammar-fold, generates vim fold commands
+Version 2.03 big data edition  (process hadoop block 250MB) [120801]
+    - increased performance 
+               - inlining of pair, unpair, where etc,
+               - translate choice sets to switch statement
+              - read input file in one go
+    - decreased memory footprint (affix stack and c store stack)
+      reset affix stack, when no derived affixes  and volatile members. 
+      volatile rules are those calling predicates add to, repair, initmeta, assign 
+   - Still issue with recursion elimination, when a derived affix is used in an inherited term
+     of the recursion elimination target
+
+Version 1.63 [111217]
+    - fixed separate compilation (part list files .p)
+    - added color metas   RED+this in red+RESET will print "this in red" in red
+    - fixed hyper "system" such that a return code of 0 means success 
+    - default operation is to supress info (particularly about non-used hypers)
+Version 1.61 [111111]
+    -  fixed part lists, non deterministic version of detnestarset
+       still some compile errrors in non-deterministic due to missing 
+        function declarations
+ 
+Version 1.59 [evoss:111016]
+    - added detnestartset used in code generation to make defining expressions 
+       deterministic if no 2 consecutive free affix 
+       terms occur in the expession.
+       For example (x+"x"+y+"y"+z+"z"+r) is deterministic if 
+       the -d option is specified.
+       Currently the non-determistic version of detnestarset 
+       is a wrapper around the deterministic version which is 
+       not right and will be fixed in a later version
+        
+       
+
+Version 1.53 [evoss:110627]
+    - fix talktounix output store bug
+
+Version 1.52 [evoss:110412]
+    - tracing fixes for 64 bits
+    - errorline fixes for long lines
+
+Version 1.51 [evoss:080218]
+   - fixed segfault in Dsetinputptr/talktounix where the char-store-heap wasn't
+      null terminated. 
+   - enhanced talk to unix to listen for input after a newline is read (select)  
+     and before a new character is read to avoid blocking and deadlock
+
+Version 1.50 [evoss:080124]
+   - add linux64 target.
+   - Fixed several issues related to 64 bit 
+   - In warnings print full names of lhs
+
+Version 1.19 [evoss:010119]
+   - Report names with spacing preserved: (a long name) is now 
+     reported as such. Previously spaces where stripped (alongname).
+     Spaces in names are still insignificant for any other purpose then 
+     reporting a name.
+     Note: The first occurrence of a name determines its spacing for all 
+           other occurrences.
+   - Enable don't care affix optimization. For some reason (I forgotten) this
+     was disabled.
+   - add CYGWIN make file entry. Use CYGWIN if you compile glammar 
+     for windows 98/NT using CYGWIN. 
+   - fixed "decimal to unary" builtin
+
+Version 1.18  
+    - fix bug in check_deterministic.  
+
+Version 1.17  [evoss:010109]
+    - allow abbreviated affix expressions.
+      Example rules(>x, empty>):  .., rules(>x).
+      is allowed. This saves adding don't care affix terms(_>)
+      which I find look ugly.
+      Abbreviated affix expressions are restricted to all derived 
+      affixes. Thus you cannot specify a single derived affix and leave
+      out other ones. You must leave them out all or none. 
+      You must specify all inherited and lattice affixes. 
+    - add "white space (ws>)" rule similar to "layout" but saves result.
+      
+ 
+Version 1.16  [evoss:001222]
+    - Generated program generated program violation if failed to open file 
+      for writing, fixed.
+
+Version 1.15  [evoss:000424]
+    - Add builtin  "find". 
+       find (>target)   finds target in the input skipping characters before 
+       target is encountered. 
+       "find" fails if target cannot be found.
+     - Increased number of arguments allowed in setup connection to unix 
+          to 100 from 10
+
+Version 1.14  [evoss:980131]
+    - Add predicate  "system"
+           system(>a system command)
+      see you manual page for the "system" call
+    - Add predicate  "write file"
+           to create a file use "write file(>"file", >file cont")
+    - Add predicate  to read and match reversed 
+            was (>" a reversed string to be matched"),
+    -  Add predicate reverse affix
+            (>affix) reverse (xiffa>).
+
+Version 1.13  [evoss:971105]
+    - fixed a bug in "talk to unix" that now cleans its i/o before 
+      talking. Also added the demo puzzle.g 
+    - added option -n to indicate top rule is a predicate such 
+      that the program without arguments doesn't start with reading 
+      from stdin. I.e glammar -n pred;   pred 
+                  instead of pred --   
+
+Version 1.12  [evoss:960424]
+    - Tail recursion elimination!
+      Whenever the last member of an alternative is equal to 
+      the hyper-rule name the alternative belongs too, and the 
+      grammar is deterministic, the recursion is removed.
+
+      This saves lots of stack memory for deterministic grammars.
+      Note in order for tail recursion to work don't use cut as
+      the last member!
+
+    - Even better support for huge input files by providing  intermediate 
+      free heaps for deterministic rules that have no derived affixes (results). 
+      This mechanism together with the new predicate "report" which 
+      reports partial results can drastically reduce affix heap and 
+      string heap usage if the grammar script defines a sequence.
+      For example in stead of: 
+          elements( e + ee>):
+            element (e>),
+             elements (ee>), ->;     /* -> makes this local deterministic */
+          elements (e>):.
+
+       In case of processing "huge" input one would prefer to use
+   
+         elements: 
+            element (e>), ->,
+             report (>e).
+             elements;
+         elements:.
+     - EAG compatible terminal sets 
+       e.g. may write  {ab}*! for !ab!*
+
+
+Version 1.11  [evoss:960424]
+    - Add support for 64 bit addressing
+
+Version 1.10  [evoss:941010]
+    - Fix affix heap growing to fast for mixed det/nondet rules grammars
+ 
+Version 1.08 /1.09  [evoss:931212]
+    - Small code optimizations
+    -  asm directive for __GNUC__ (sparc)
+    -  copy affix structs in one go 
+        (use -DNO_COPY_STUCT) to suppress this feature if compiler
+                   can't handle struct copying.
+    - hint on unused hyper rules
+ 
+Version 1.07  [ezande:930310]
+		- Floating point exception bug fixed in gg10.c
+			Divide by zero in -V(erbose) mode.
+
+Version 1.06  [evoss:930309]
+    - Introduce a redirection construct.
+      Members may be preceded with "[" terms "]"
+      Example: ["a"] "a"
+
+Version 1.05  [ezande:930208]
+    - Fixed bug in version number of generated glammar programs
+
+Version 1.04  [evoss:930204]
+    - Fix bugs in reporting line number if errmsg
+    - Optimized defining expressions like a*b+c
+      From now on this behaves deterministic
+
+Version 1.03  [ezande:930203]
+    - Added getrlimit and setrlimit to ge20.c.
+      This will set the stack-size to the maximum value possible.
+      This work only on SUN
+
+Version 1.02  [ezande:930202]
+    - Introduced two environment variables that can be used to override
+      the fixed paths for the glammar library and the glammar include
+      directories which are set in the 'make.local' file.
+      LIBGLAMMAR can be used to specify an alternate lib directory
+      INCGLAMMAR can be used to specify an alternate inc directory
+    - Moved a number of constants to the gg1.h header file.
+    - Moved VERSION macro to gg1.h .
+
+Version 1.01  
+    Undocumented
+
+Version 1.00  
+    Undocumented
