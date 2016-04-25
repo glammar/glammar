@@ -152,103 +152,104 @@ here is one that is harder to google:
     two (>"101"):->;
     two (>"011"):.
 
-one(>"100"):->;
-one(>"010"):->;
-one(>"001"):.
-
-one or two(>one): one (>one),->;
-one or two(>two): two (>two).
-
-zero or one (>"000"):->;
-zero or one (>one): one (>one).
-
-THREE::"111".
-
-combine(>empty, >empty, empty>):->;
-combine(>"0"+x, >"0"+y, "0"+z>):
-     combine(>x,>y, z>),->;
-combine(>"0"+x, >"1"+y, "1"+z>):
-     combine(>x,>y, z>),->;
-combine(>"1"+x, >"0"+y, "1"+z>):
-     combine(>x,>y, z>),->;
-combine(>x, >y, x>):
-    type out (>"combine of "+x+","+y+" failed\n"),
-     fail.
-
-
-choose any(zz>, zz+empty>):
-   !0!*(zz>),
-   end of sentence,->;
-choose any ("0"+c>, "0"+nc>):
-   "0", ->,
-   choose any(c>, nc>);
-choose any ("0"+c>, "1"+nc>):
-   "1",
-   choose any(c>, nc>);
-choose any ("1"+c>, "0"+nc>):
-   "1",
-   choose any(c>, nc>).
-
-
-invert(>empty, empty>):->;
-invert(>"0", "1">):->;
-invert(>"A", "B">):->;
-invert(>"B", "A">):->;
-invert(>"1", "0">):->;
-invert(>"0"+x, "1"+z>):
-    invert(>x, z>),->;
-invert(>"1"+x, "0"+z>):
-    invert(>x, z>).
-
-robber (>robbers) with bags (>bags) doesn't run:
-   more robber (>robbers) with bags (>bags) doesn't run,->;
-robber (>robbers) with bags (>bags) doesn't run:
-#   type out (>"robbers "+robbers+" with bags "+bags+" run"+nlcr),
-      fail.
-
-# checking what is left behind on departure is safe
-more robber(>robbers)with bags (>"000") doesn't run:->;
-more robber(>"001") with bags (>b) doesn't run:->, equal (>b, >"001");
-more robber(>"010") with bags (>"1"+x) doesn't run:->, fail;
-more robber(>"010") with bags (>"011") doesn't run:->, fail;
-more robber(>"100") with bags (>"100") doesn't run:->;
-more robber(>"100") with bags (>"1"+x) doesn't run:->, fail;
-more robber(>robbers) with bags (>bags) doesn't run:.
-
-
-# checking safe arrival
-# (arriving robbers,arriving bags) can meet (robbers on shore, bags on shore) provided (bag in boat or no bag) stays
-(>"000", >"000") can meet (>"111", >"111") provided ("000">) stays:->;
-(>one robber, >without a bag) can meet (>any old robbers, >bags) provided ("000">) stays:
-      one (>one robber),
-      equal (>without a bag, >"000"),
-      combine (>one robber, >any old robbers, robbers>),
-      robber (>robbers) with bags (>bags) doesn't run,->;
-(>robbers, >_) can meet (>_+"1"+_, >_) provided ("000">) stays :->;
-(>two robbers,>"000") can meet (>any robbers,>bags)  provided ("000">) stays :
-      two (>two robbers),->;
-  #      choose one (>two robbers, one robber>, other robber>),
-  #      robber (>one robber) with bags (>bags) doesn't run;
-(>robber,>with a bag) can meet (>"000",>meeting bags) provided ("000">) stays :
-      one (>robber),
-      combine (>with a bag , >meeting bags, bags>),
-      robber (>robber) with bags (>bags) doesn't run,->;
-(>robber,>with a bag) can meet (>"000",>bags) provided (with a bag>) stays :
-      one (>robber),
-      robber (>robber) with bags (>bags) doesn't run,->;
-(>robbers,>bags) can meet (>any old robbers,>any old bags) provided ("000">) stays:
-   #    type out (>"robbers "+robbers+" with bags "+bags+" cannot meet "+ any old robbers+ " "+any old bags+nlcr),
-    fail.
-
-no new bags if (>"000", >new bags, new bags>): ->;
-no new bags if (>stay put bag, >stay put bag, "000">):.
-
-
-pretty print this crossing(>w, >"100", w+"8k ">):->;
-pretty print this crossing(>w, >"010", w+"5k ">):->;
-pretty print this crossing(>w, >"001", w+"3k ">):->;
-pretty print this crossing(>w, >"000", empty>):->;
-pretty print this crossing(>w, >"110", w+"8k and "+w+"5k ">):->;
-pretty print this crossing(>w, >"101", w+"8k and "+w+"3k ">):->;
-pretty print this crossing(>w, >"011", w+"5k and "+w+"3k ">):.
+     one(>"100"):->;
+     one(>"010"):->;
+     one(>"001"):.
+     
+     one or two(>one): one (>one),->;
+     one or two(>two): two (>two).
+     
+     zero or one (>"000"):->;
+     zero or one (>one): one (>one).
+     
+     THREE::"111".
+     
+     combine(>empty, >empty, empty>):->;
+     combine(>"0"+x, >"0"+y, "0"+z>):
+          combine(>x,>y, z>),->;
+     combine(>"0"+x, >"1"+y, "1"+z>):
+          combine(>x,>y, z>),->;
+     combine(>"1"+x, >"0"+y, "1"+z>):
+          combine(>x,>y, z>),->;
+     combine(>x, >y, x>):
+         type out (>"combine of "+x+","+y+" failed\n"),
+          fail.
+     
+     
+     choose any(zz>, zz+empty>):
+        !0!*(zz>),
+        end of sentence,->;
+     choose any ("0"+c>, "0"+nc>):
+        "0", ->,
+        choose any(c>, nc>);
+     choose any ("0"+c>, "1"+nc>):
+        "1",
+        choose any(c>, nc>);
+     choose any ("1"+c>, "0"+nc>):
+        "1",
+        choose any(c>, nc>).
+     
+     
+     invert(>empty, empty>):->;
+     invert(>"0", "1">):->;
+     invert(>"A", "B">):->;
+     invert(>"B", "A">):->;
+     invert(>"1", "0">):->;
+     invert(>"0"+x, "1"+z>):
+         invert(>x, z>),->;
+     invert(>"1"+x, "0"+z>):
+         invert(>x, z>).
+     
+     robber (>robbers) with bags (>bags) doesn't run:
+        more robber (>robbers) with bags (>bags) doesn't run,->;
+     robber (>robbers) with bags (>bags) doesn't run:
+     #   type out (>"robbers "+robbers+" with bags "+bags+" run"+nlcr),
+           fail.
+     
+     # checking what is left behind on departure is safe
+     more robber(>robbers)with bags (>"000") doesn't run:->;
+     more robber(>"001") with bags (>b) doesn't run:->, equal (>b, >"001");
+     more robber(>"010") with bags (>"1"+x) doesn't run:->, fail;
+     more robber(>"010") with bags (>"011") doesn't run:->, fail;
+     more robber(>"100") with bags (>"100") doesn't run:->;
+     more robber(>"100") with bags (>"1"+x) doesn't run:->, fail;
+     more robber(>robbers) with bags (>bags) doesn't run:.
+     
+     
+     # checking safe arrival
+     # (arriving robbers,arriving bags) can meet (robbers on shore, bags on shore) provided (bag in boat or no bag) stays
+     (>"000", >"000") can meet (>"111", >"111") provided ("000">) stays:->;
+     (>one robber, >without a bag) can meet (>any old robbers, >bags) provided ("000">) stays:
+           one (>one robber),
+           equal (>without a bag, >"000"),
+           combine (>one robber, >any old robbers, robbers>),
+           robber (>robbers) with bags (>bags) doesn't run,->;
+     (>robbers, >_) can meet (>_+"1"+_, >_) provided ("000">) stays :->;
+     (>two robbers,>"000") can meet (>any robbers,>bags)  provided ("000">) stays :
+           two (>two robbers),->;
+       #      choose one (>two robbers, one robber>, other robber>),
+       #      robber (>one robber) with bags (>bags) doesn't run;
+     (>robber,>with a bag) can meet (>"000",>meeting bags) provided ("000">) stays :
+           one (>robber),
+           combine (>with a bag , >meeting bags, bags>),
+           robber (>robber) with bags (>bags) doesn't run,->;
+     (>robber,>with a bag) can meet (>"000",>bags) provided (with a bag>) stays :
+           one (>robber),
+           robber (>robber) with bags (>bags) doesn't run,->;
+     (>robbers,>bags) can meet (>any old robbers,>any old bags) provided ("000">) stays:
+        #    type out (>"robbers "+robbers+" with bags "+bags+" cannot meet "+ any old robbers+ " "+any old bags+nlcr),
+         fail.
+     
+     no new bags if (>"000", >new bags, new bags>): ->;
+     no new bags if (>stay put bag, >stay put bag, "000">):.
+     
+     
+     pretty print this crossing(>w, >"100", w+"8k ">):->;
+     pretty print this crossing(>w, >"010", w+"5k ">):->;
+     pretty print this crossing(>w, >"001", w+"3k ">):->;
+     pretty print this crossing(>w, >"000", empty>):->;
+     pretty print this crossing(>w, >"110", w+"8k and "+w+"5k ">):->;
+     pretty print this crossing(>w, >"101", w+"8k and "+w+"3k ">):->;
+     pretty print this crossing(>w, >"011", w+"5k and "+w+"3k ">):.
+     
 
