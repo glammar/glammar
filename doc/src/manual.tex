@@ -1,0 +1,100 @@
+% Glammar reference manual in LaTeX [Writeup] format
+% by Eric Voss, last updated: April 1989
+%
+%   Permission is granted to process this file through Tex and
+%   print the results, provided the printed document carries this
+%   permission notice and the notice defined in \KUNcopytext below.
+%
+\documentstyle[rail,glammar]{book}
+%
+%
+\newcommand{\g}{{\sc glammar }}
+%
+%\justify
+\def\I{\index}
+%\renewcommand{\itdefault}{sl}
+%\shape{n}\family{cmss}\selectfont
+
+\makeindex
+\title
+{{\Huge \bf GLAMMAR  User Manual}\\[2ex]
+Version 1.0, June 1991}
+\author{{\Large Eric Voss}\\[3ex]
+Email: evoss\char"40us.oracle.com}
+
+\textheight 21cm
+\topmargin 1cm
+%\includeonly{chapters/lang,chapters/use,chapters/interface,chapters/examples,chapters/sydiag}
+% \includeonly{chapters/sydiag}
+\begin{document}
+\maketitle
+%\justify
+%
+%
+
+%\railnamesep 4mm
+%\include{chapters/abstract}
+%\tableofcontents
+%\listoffigures
+\include{chapters/copy}
+\include{chapters/intro}
+\include{chapters/lang}
+\include{chapters/use}
+\include{chapters/interface}
+\nocite{Alb86}
+\nocite{Att88}
+\nocite{Cou82b}
+\nocite{Cou84}
+\nocite{Cro72}
+\nocite{Dem77}
+\nocite{Der88b}
+\nocite{Fra88b}
+\nocite{Gan84}
+\nocite{Gie88}
+\nocite{Gra80}
+\nocite{Jaz81b}
+\nocite{Kat84a}
+\nocite{Knu68}
+\nocite{Knu71a}
+\nocite{Kon82}
+\nocite{Kon88}
+\nocite{Kos69}
+\nocite{Kos71a}
+\nocite{Kos75}
+\nocite{Kos85}
+\nocite{Kuh78}
+\nocite{Lan90}
+\nocite{Leo87}
+\nocite{Meij80}
+\nocite{Meij86}
+\nocite{Meij90}
+\nocite{Mil77b}
+\nocite{Mor88b}
+\nocite{Nes83}
+\nocite{Nie84}
+\nocite{Osb89}
+\nocite{Pag79}
+\nocite{Pap81}
+\nocite{Pen86}
+\nocite{Sim86}
+\nocite{Son85}
+\nocite{Vog89}
+\nocite{Wat74}
+\nocite{Yeh88b}
+\nocite{Yel86}
+\nocite{Yel88}
+\nocite{Zwo90}
+\chapter*{Appendices}
+\appendix
+\newpage
+\include{chapters/sydiag}
+\newpage
+\include{chapters/examples}
+\newpage
+\include{chapters/builtins}
+\include{chapters/licence}
+\bibliographystyle{amsplain}
+\bibliography{compiler}
+\chapter*{}
+\input{manual.ind}
+\end{document}
