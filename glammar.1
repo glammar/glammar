@@ -1,0 +1,324 @@
+.TH GLAMMAR 99 "\tUnsupported product"
+.SH NAME
+.IR Glammar
+\- EAG compiler compiler 
+.br
+Version 1.08 September 1993
+.SH AUTHOR 
+Eric Voss , evoss@nl.oracle.com
+.SH SYNOPSIS
+.B glammar
+[ options ] [file|-] 
+.SH DESCRIPTION
+.IR Glammar 
+is an 
+.IR EAG
+(Extended Affix Grammars)
+compiler compiler entirely written in 
+.IR C.
+Glammar might be something for you if you use to solve the problem with 
+.IR PROLOG,
+.IR YACC 
+etc.
+
+The source program is specified as an extension of context free grammars.
+The extension are called affixes. 
+Results are reported as in YACC by derived affixes.
+Context sensitive checks can be implemented using inherited affixes.
+
+.LP
+Glammar generates a program (compiler) 
+.B MyGrammar
+from a source grammar 
+.B MyGrammar.g 
+by typing glammar MyGrammar
+.br
+Alternatively glammar reads a grammar from 
+.B stdin 
+and writes C-code to 
+.B stdout 
+if typed glammar - 
+.br
+Also an intermediate file 
+.B file_\.c 
+is created and removed upon completion
+of the generation process.
+
+If a compiler is generated (lets assume you typed 
+.B glammar\ MyGrammar
+) you can give 
+the input and  output files and options to the generated compiler in the
+same way
+(i.e type: 
+.B MyGrammar\ in\ out 
+or just 
+.B MyGrammar 
+will read from  the file 
+.B in
+or
+.B stdin  
+and write output to the file
+.B out
+or
+.B stdout 
+respectively.
+
+.SH GLAMMAR OPTIONS 
+The following options are interpreted by
+.IR glammar .
+.TP 8
+.B \-a
+Dump a message for 
+.IR ambiguous
+rules when running the generated compiler.
+.TP 
+.B \-d
+Force some (but not all) builtins to behave  
+.IR deterministically.
+If the start rule is not deterministic a listing is given of 
+nondeterministic rules and compilation is aborted.
+.TP 
+.B \-mn
+.IR memoizing. 
+This options specifies to memoize production 
+that do not use inherited affixes (if any) 
+in the remaining nondeterministic part (thus for instance after the builtins (equal, not equal)) provided this remaining tail does not produce empty.
+
+Currently grammars compiled with this option
+have a limit in respect to the input size ("n"K symbols) (generated compiler).
+The default size of "n" is 2. 
+
+.TP 
+.B \-Mn
+Advanced memoizing.
+This option specifies that the grammar will be transformed to a weak equivalent form
+in which productions produce either empty only or not empty.
+.IR 
+.TP
+.B \-t
+Simple 
+.IR tracer.
+The execution of the generated compiler will be traced.
+This trace consists of a dynamic level number, the current hyperrule,
+and the inherited affixes of the current hyperrule.
+Undefined affixes are printed as "!<@>!", 
+composed  affixes are unpaired once, remaining compositions are printed 
+as "!<adress>!" where "addres" is some decimal number.
+.TP
+.B \-T
+Same as -t but builtins are also traced.
+.TP
+.B \-p
+Take the input file name to be a 
+.IR part-list
+( a `.p' file ) of subsequent input files (see "seperate compilation").
+Compiles all those parts that are out of date. 
+If the local directory  ".glammar" exist, object are placed in this directory.
+.TP
+.B \-P
+Same as -p.
+.TP
+.B \-oname
+Pass name as an option to "cc" or "gcc". The "o" is stripped. 
+Example "glammar -ofomit-frame-pointer -oO eag".
+.TP
+.B \-x
+Produce an 
+.IR index 
+file (`.x')
+of defined hyper- and metarules with file name and line number.
+This index can best be sorted.
+.TP
+.B \-X
+Make an index-file only (no compilation).
+.TP
+.B \-f
+Do not 
+.IR lift
+certain (nondeterministic) builtins which are in front of a
+production rule. 
+.TP
+.B \-g
+Do not use the 
+.IR Gnu 
+gcc compiler.
+.TP
+.B \-S
+Do not use strip on the resulting executable
+.TP
+.B \-s
+Produce a ".c" file only.
+.TP
+.B \-V
+Be 
+.IR verbose 
+.TP
+.B \-v
+Prints the  
+.IR version 
+number and instalation date.
+
+.TP
+.B \-r[trans]
+If "trans" is omitted 
+then after all the transformations are performed , compilation is aborted
+and the 
+.IR transformed
+grammar is
+.IR printed 
+to stdout.
+Transformations are done in the order: Compose operator elimination,
+defining expression elimnation, implied equal elimination, error message affix
+generation 
+If "trans" is "idx" and the
+the grammar is  context free grammar this option generates a new grammar with 
+affixes  added such that the new grammar will output what it recognized.
+This save some work if you write a transducer in the following steps:
+first write a context free grammar, compile this grammar using option "-ridx" 
+and addapt the displays in this output conform to your needs.
+.br
+If "trans" is "parse-tree" and the
+grammar is  context free grammar this option generates a new grammar with affixes
+such that when re-compiled this grammar, a parse-tree is generated for the original grammar.
+If "trans" is "cfg" the grammar is deprived of its displays. 
+.TP
+.B \-cDirname
+.IR Hackflag\ (hackers\ only).
+This flag is most useful for those who want to 
+.IR extend\ the\ set\ of\ builtins. 
+"Dirname" is the full pathname of the directory where your own file "glammar.g" should exist.
+Furthermore in this same directory a file "glext.o" is assumed which
+is linked together with the system files to form an executable compiler.
+For information how to organize your own builtins see System Document
+of the Cglammar Compiler Compiler.
+You can get a (free) copy of this paper via email 
+.IR ericv@cs.kun.nl.
+
+.SH GENERATED COMPILER OPTIONS
+.TP 
+.B \-an
+Limit the number of parses to n. 
+.TP 
+.B \-E
+Do not give
+.IR error\ messages 
+but exit with 1.
+.TP
+.B \-r
+Message resource usages like stack size and affix store size (option of a generated compiler).
+.TP
+.B \-hn
+Increase affix store size (used for deterministic grammars) (1 = 2m). 
+.TP
+.B \-cn
+Increase character store size (1 = 512k). 
+.TP
+.B \-qn
+Increase continuation stack size (1 = 512k). 
+.TP
+.B \-l
+Line loop mode.
+That is read and process one line at a time.
+Each line is taken to be a single input sentence.
+.TP
+.B \-tn
+If compiled with the trace option , begin tracing at dynamic level n.
+If n equals -1 tracing is completely suppressed.
+
+.SH DIAGNOSTICS
+The diagnostics produced by 
+.IR glammar
+are self explaining.
+.SH SPECIAL FEATURES
+Read the manual for a full description of GLAMMAR 
+If you are familiar with EAG,  some special feautures of GLAMMAR are: 
+.TP
+.B \- cut operator  on hyper level.
+The cut operator is implemented as a special builtin namely "cut".
+This may be abbreviated with "->" though by doing so syntax looks awful 
+(e.g. a,->; stands for a,cut;)
+When this operator is applied, next alternatives are omitted. 
+
+This operator does not fundamentally affect the semantics of the glammar system, since
+each grammar can still be transformed to an equivalent form without this operator.
+.TP
+.B \- underscore (_) as don't care affix name 
+Each underscore is replaced at compile time to something like "x_%X" where 
+"%X" is a unique hexadecimal number during parsing.
+Therefore underscores on applying positions result in an error message of
+the form : affix "x_1" not defined in ... .
+.br
+The pretty printer prints underscores as (to a certain extend) unique greek
+letters.
+.TP
+.B \- input redirection.
+A member  may be preceeded with an affix term put between square brackets.
+The input for this member will be taken from the evaluated term
+.br
+Example:
+.br
+input redirection ex : ["a_identifier" ] identifier(id>).
+.br
+This will assign affix id the value  a_identifier .
+In general any affix expression may be specified with the restriction 
+that the resulting expression contains no unevaluated terms.
+.TP
+.B \- superrules.
+Superrules are a special kind of metarules and can be used as transparent
+filters.
+At this moment they only are allowed on defining positions.
+.br
+Superrules are declared as :
+.br
+super :: @ hyper.
+.br
+"hyper" should have exactly one derived affix.
+So using superrules you can mix metalevel and hyperlevel and can 
+affix definitions indirectly have alternatives.
+Mixing hyper and meta level to redirect input can perhaps more 
+conveniently be done using the input redirection construct.
+.br
+.TP
+.B \-  connection to unix programs.
+Several builtins have been written to maintain a connection during the execution of your grammar to some 
+other program. 
+These builtins are "set up connection to unix" and "talk to unix".
+See the manual. 
+.TP
+.B \-  additional builtins.
+The set of builtins is extended with builtins that trace affix values,
+do integer arithmetic, line and file control in error messages, fast symbol
+scanning etc.
+For a complete listing you can print out the file $LIB/glammar.g (
+Preferable you can first format it with the pretty printer 
+.B glammar-pp
+).
+.B \-  Finite Lattices 
+Lattices can be used  as a very efficient unification tool.
+See the manual. 
+
+.SH "SEE ALSO"
+glammar-pp, cc
+.LP
+For a practical introduction:
+.br
+Eric Voss,
+.IR glammar\ user's\ and\ reference\ manual
+Internal paper, 1990 
+.SH BUGS
+.TP 8
+.B \-
+Metarules can only have one production.
+Metarules that need multiple productions can perhaps be simulated using
+.IR super rules 
+or else 
+.IR lattices 
+.TP 
+.B \-
+No delayed affix evaluation.
+.TP 
+.B \-
+No left recursion on hyperlevel.
+
+.LP
+Send unmentioned bugs or just comments to ericv@cs.kun.nl.
