@@ -261,12 +261,14 @@ char *post;
   {
     int id = (q - q_stack) >> 2;
     char *ids = spaces + 32 - (id & 31);
-    char eterm[2000];
+    char eterm[2001];
     char *ec = eterm;
     char *tc = term;
+    char *eec=ec+2000;
     *ec = 0;
-    while (*tc)
+    while (*tc && ec < eec)
     {
+      
       if (isprint (*tc))
       {
         if (*tc == '"')
@@ -385,7 +387,7 @@ void found ()
   {
     parsecount += 1;
     result ();
-    if (parsecount >= abq_level)
+    if (abq_level && parsecount >= abq_level)
       exit (0);
   }
   q += 1;

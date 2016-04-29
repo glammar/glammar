@@ -11,6 +11,8 @@
  *
  */
 
+#define _GNU_SOURCE
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,9 +21,15 @@
 #endif
 #include <string.h>
 
+#include <unistd.h>
+
 #define true 1
 #define false 0
 
+#define GM_ARG_SIZE 1000
+
+#define CSTORE_INPUT_HEAP_SIZE 100000000
+#define AFFIX_HEAP_SIZE 30000000
 
 typedef struct affix_struct {
   char           *t;
@@ -59,10 +67,10 @@ extern int     memorizing;
 extern char *fast_list_acces;
 extern char    *mip, *set_ip_start_pos, *limitip, *undefined, *empty;
 
-extern int      rcount, rmax, set_ip_start_num, cssize;
-extern int      parsecount, nrofchars, level, eval_count, emsg_count,
+extern long int      rcount, rmax, set_ip_start_num, cssize;
+extern long int      parsecount, nrofchars, level, eval_count, emsg_count,
                 interesting_level_number, backtrace;
-extern char     in_file_name[256], out_file_name[256], current_file_name[256];
+extern char     in_file_name[GM_ARG_SIZE], out_file_name[GM_ARG_SIZE], current_file_name[GM_ARG_SIZE];
 extern char    *thischar;
 extern char    *arg_zero;
 extern FILE    *inputfile,*output;
@@ -75,7 +83,7 @@ extern char            *pntname;
 extern char            *lastpntname;
 extern int             change_line_file;
 
-extern char *argv[102];
+extern char *argv[GM_ARG_SIZE+1];
 
 extern cont    *q;
 
@@ -112,7 +120,9 @@ extern affix *af;
 }
 #define PUT_CELL_ADDR(cell)\
  { register char *d = (char *) & cell;\
-   register char *rc = c;rc[0] = '\001' ;rc[1] = d[0];rc[2] = d[1];\
+   register char *rc = c;\
+   if (rc + 12 > cstore_top) cstore_overflow (); \
+   rc[0] = '\001' ;rc[1] = d[0];rc[2] = d[1];\
 rc[3] = d[2];rc[4] = d[3];rc[5] = d[4];rc[6] = d[5];\
 rc[7] = d[6];rc[8] = d[7];rc[9] = '\001';rc[10] = '\0';c = rc+11;} 
 #else   /* assume 4 byte addressing */
@@ -126,20 +136,22 @@ rc[7] = d[6];rc[8] = d[7];rc[9] = '\001';rc[10] = '\0';c = rc+11;}
 }
 #define PUT_CELL_ADDR(cell)\
  { register char *d = (char *) & cell;\
-   register char *rc = c;rc[0] = '\001' ;rc[1] = d[0];rc[2] = d[1];\
+   register char *rc = c;\
+   if (rc + 12 > cstore_top) cstore_overflow (); \
+   rc[0] = '\001' ;rc[1] = d[0];rc[2] = d[1];\
 rc[3] = d[2];rc[4] = d[3];rc[5] = '\001';rc[6] = '\0';c = rc+7;} 
 #endif /* eight byte addressing */                                
 
 extern AFFIX   afx_top;
 extern AFFIX   affix_heap;
 extern cont *q_stack; 
-extern int  runtime_input_size, abq_level;
-extern int ll_mode, ll_count, output_to_stdout, input_from_stdin;
-extern int afhsize, q_size;
-extern int  report_stacksize;
-extern char** stack_bottum;
-extern char sv_error_msg[4000];
-extern int exit_code;
+extern long int  runtime_input_size, abq_level;
+extern long int ll_mode, ll_count, output_to_stdout, input_from_stdin;
+extern long int afhsize, q_size;
+extern long int  report_stacksize;
+extern char** stack_bottom;
+extern char sv_error_msg[GM_ARG_SIZE*10];
+extern long int exit_code;
 extern char *ipstart, *ipend, *ipln;
 int clear_memo_tab();
 

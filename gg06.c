@@ -9,7 +9,7 @@
 /* file  : transform defining affix expressions */
 #include "gg1.h"
 #include "gg2.h"
-int lastmem, prevmem, unique_eag_count = 0,
+long lastmem, prevmem, unique_eag_count = 0,
                                         total_eag_count = 0,
                                         unique_list_count = 0,
                                         total_list_count = 0,
@@ -20,6 +20,9 @@ char *gterm;
 char *get_L ();
 char *get_G ();
 char *get_GG ();
+
+long term_defined_before (long alt, long mem, char *term);
+long final_nestarset_removal_alt (long ob0, long ob, long mem, long alt);
 
 char small_L[10][4] = {
   "L_0",
@@ -54,7 +57,7 @@ char *get_L ()
   {
     char *name;
     name = &chartable[++charindex];
-    (void) sprintf (&chartable[charindex], "L_%d", unique_list_count++);
+    (void) sprintf (&chartable[charindex], "L_%ld", unique_list_count++);
     charindex += 10;
     if (charindex > maxchars)
       alloc_chartable ();
@@ -69,7 +72,7 @@ char *get_GG ()
   {
     char *name;
     name = &chartable[++charindex];
-    (void) sprintf (&chartable[charindex], "GG_%d", unique_eag_count++);
+    (void) sprintf (&chartable[charindex], "GG_%ld", unique_eag_count++);
     charindex += 10;
     if (charindex > maxchars)
       alloc_chartable ();
@@ -80,20 +83,20 @@ char *get_GG ()
 
 eag ()
 {
-  int rule, alt;
+  long rule, alt;
 
 
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
       alt_eag (alt);
   if (verbose_flag)
-    fprintf (stderr, "glammar transformation fase: %d defining expressions resolved.\n", total_eag_count);
+    fprintf (stderr, "glammar transformation fase: %ld defining expressions resolved.\n", total_eag_count);
   delete_superaffix_productions ();
 }
 
 delete_superaffix_productions ()
 {
-  int this, prev, super_rules = 0;
+  long this, prev, super_rules = 0;
 
 
   for (; lastmetarule != nil; lastmetarule = BROTHER (lastmetarule))
@@ -112,13 +115,13 @@ delete_superaffix_productions ()
         prev = this;
     }
   if (verbose_flag)
-    fprintf (stderr, "glammar transformation fase: %d super affixes deleted\n", super_rules);
+    fprintf (stderr, "glammar transformation fase: %ld super affixes deleted\n", super_rules);
 }
 
 alt_eag (alt)
-int alt;
+long alt;
 {
-  int member;
+  long member;
 
   unique_eag_count = 0;
   lefths_eag (alt);
@@ -129,9 +132,9 @@ int alt;
 
 
 lefths_eag (alt)
-int alt;
+long alt;
 {
-  int affix;
+  long affix;
 
   for (affix = AFFIXDEF (alt); affix != nil; affix = BROTHER (affix))
     if (NODENAME (affix) == inherited)
@@ -139,7 +142,7 @@ int alt;
       if ((BROTHER (SON (affix)) != nil) || (NODENAME (SON (affix)) == superaffix))
       {
         char *name;
-        int lbrother, llbrother;
+        long lbrother, llbrother;
 
         name = get_GG ();
         gterm = name + 1;
@@ -171,16 +174,16 @@ int alt;
 
 
 rights_eag (mem)
-int mem;
+long mem;
 {
-  int affix;
+  long affix;
   char *name;
-  int lbrother, llbrother;
+  long lbrother, llbrother;
 
   if (REPR (mem) == redirect)
   {
-    int m = mem;
-    int b;
+    long m = mem;
+    long b;
     name = get_GG ();
     brother = BROTHER (m);
     newnode (affixnt, nil, nil, name + 1);
@@ -242,7 +245,7 @@ int mem;
 
 
 defining_expr (term)
-int term;
+long term;
 {
   if (term == nil)
     return;
@@ -267,7 +270,7 @@ int term;
     super_hyper (term);
   else
   {
-    int bterm = BROTHER (term);
+    long bterm = BROTHER (term);
     if (NODENAME (bterm) == metaffix || NODENAME (bterm) == affixtm)
     {
       det_free_meta (term);
@@ -280,7 +283,7 @@ int term;
 
 
 constant (term)
-int term;
+long term;
 {
   newnode (tnode, brother, nil, REPR (term));
   FLAG_SET (brother, redirected_input);
@@ -288,9 +291,9 @@ int term;
 
 
 last_constant (term)
-int term;
+long term;
 {
-  int lbrother = brother;
+  long lbrother = brother;
 
   newnode (affixnt, nil, nil, gterm);
   newnode (inherited, nil, brother, "(nil)");
@@ -304,11 +307,11 @@ int term;
 
 
 det_free_meta (term)
-int term;
+long term;
 {
-  int ab, lbrother = brother;
-  int replace = detnestarset;
-  int bt = BROTHER (term);
+  long ab, lbrother = brother;
+  long replace = detnestarset;
+  long bt = BROTHER (term);
 
   if (REPR (term) && (*(REPR (term)) == 'L') && (*(REPR (term) + 1) == '_'))
     return free_meta (term);
@@ -324,10 +327,10 @@ int term;
 }
 
 free_meta (term)
-int term;
+long term;
 {
-  int lbrother = brother;
-  int replace = nestarset;
+  long lbrother = brother;
+  long replace = nestarset;
 
   if (REPR (term) && (*(REPR (term)) == 'L') && (*(REPR (term) + 1) == '_'))
     replace = getlist_;
@@ -341,9 +344,9 @@ int term;
 
 
 last_free (term)
-int term;
+long term;
 {
-  int lbrother = brother, ab;
+  long lbrother = brother, ab;
 
   newnode (affixnt, nil, nil, gterm);
   newnode (inherited, nil, brother, "(nil)");
@@ -357,9 +360,9 @@ int term;
 }
 
 meta_constant (term)
-int term;
+long term;
 {
-  int lbrother = brother;
+  long lbrother = brother;
 
   newnode (metaffix, nil, nil, REPR (term));
   newnode (inherited, nil, brother, REPR (term));
@@ -371,9 +374,9 @@ int term;
 
 
 last_meta_constant (term)
-int term;
+long term;
 {
-  int lbrother = brother;
+  long lbrother = brother;
 
   newnode (affixnt, nil, nil, gterm);
   newnode (inherited, nil, brother, "(nil)");
@@ -391,9 +394,9 @@ int term;
 }
 
 super_hyper (term)
-int term;
+long term;
 {
-  int lbrother = brother;
+  long lbrother = brother;
 
   newnode (affixnt, nil, nil, REPR (term));
   newnode (derived, nil, brother, REPR (term));
@@ -409,9 +412,9 @@ int term;
 }
 
 last_super_hyper (term)
-int term;
+long term;
 {
-  int lbrother = brother;
+  long lbrother = brother;
 
   newnode (affixnt, nil, nil, gterm);
   newnode (inherited, nil, brother, "(nil)");
@@ -435,7 +438,7 @@ int term;
 char *repr_empty;
 list ()
 {
-  int rule, alt;
+  long rule, alt;
   for (rule = lastmetarule; (rule != nil) && (!mystrcmp (REPR (rule), "empty")); rule = BROTHER (rule));
   if (rule == nil)
   {
@@ -454,16 +457,16 @@ list ()
       alt_list (alt);
   }
   if (verbose_flag)
-    fprintf (stderr, "glammar transformation fase: %d compositions resolved.\n", total_list_count);
+    fprintf (stderr, "glammar transformation fase: %ld compositions resolved.\n", total_list_count);
   if (verbose_flag)
-    fprintf (stderr, "glammar optimization fase: %d empty notions deleted.\n", unique_empty_count);
+    fprintf (stderr, "glammar optimization fase: %ld empty notions deleted.\n", unique_empty_count);
 }
 
 
 alt_list (alt)
-int alt;
+long alt;
 {
-  int member;
+  long member;
 
   unique_list_count = 0, lefths_list (alt);
   prevmem = nil;
@@ -478,9 +481,9 @@ int alt;
 
 
 lefths_list (alt)
-int alt;
+long alt;
 {
-  int affix, last_mem, term;
+  long affix, last_mem, term;
 
   for (affix = AFFIXDEF (alt); affix != nil; affix = BROTHER (affix))
   {
@@ -499,7 +502,7 @@ int alt;
     last_mem = nil;
   else
   {
-    int mem;
+    long mem;
     for (mem = SON (alt); BROTHER (mem) != nil; mem = BROTHER (mem));
     last_mem = mem;
   }
@@ -519,9 +522,9 @@ int alt;
 }
 
 delete_multiple_empty_terms (prev)
-int prev;
+long prev;
 {
-  int term = BROTHER (prev), next;
+  long term = BROTHER (prev), next;
   if (term == nil)
     return;
 
@@ -536,9 +539,9 @@ int prev;
 }
 
 rights_list (mem)
-int mem;
+long mem;
 {
-  int affix, term;
+  long affix, term;
 
   for (affix = AFFIXTREE (mem); affix != nil; affix = BROTHER (affix))
     for (term = SON (affix); term != nil; term = BROTHER (term))
@@ -569,10 +572,10 @@ int mem;
 
 
 make_pair_node (fact, lterm, llterm)
-int fact;
+long fact;
 char *lterm, *llterm;
 {
-  int lbrother = brother, ab;
+  long lbrother = brother, ab;
 
   newnode (affixnt, nil, nil, lterm);
   newnode (inherited, nil, brother, "(nil)");
@@ -587,10 +590,10 @@ char *lterm, *llterm;
 
 
 make_unpair_node (fact, lterm, llterm)
-int fact;
+long fact;
 char *lterm, *llterm;
 {
-  int lbrother = brother, ab;
+  long lbrother = brother, ab;
 
   newnode (affixnt, nil, nil, lterm);
   newnode (derived, nil, brother, "(nil)");
@@ -605,10 +608,10 @@ char *lterm, *llterm;
 
 
 make_last_pair_node (fact, bfact, lterm)
-int fact, bfact;
+long fact, bfact;
 char *lterm;
 {
-  int lbrother = brother, ab;
+  long lbrother = brother, ab;
 
   newnode (NODENAME (bfact), nil, nil, REPR (bfact));
   newnode (inherited, nil, brother, "(nil)");
@@ -623,10 +626,10 @@ char *lterm;
 
 
 make_last_unpair_node (fact, bfact, lterm)
-int fact, bfact;
+long fact, bfact;
 char *lterm;
 {
-  int lbrother = brother, ab;
+  long lbrother = brother, ab;
 
   newnode (NODENAME (bfact), nil, nil, REPR (bfact));
   newnode (derived, nil, brother, "(nil)");
@@ -641,7 +644,7 @@ char *lterm;
 
 
 resolve_list (fact, lterm, defining)
-int fact, defining;
+long fact, defining;
 char *lterm;
 {
   if (BROTHER (BROTHER (fact)) == nil)
@@ -667,7 +670,7 @@ char *lterm;
 
 wheres ()
 {
-  int rule, alt;
+  long rule, alt;
 
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
@@ -675,16 +678,16 @@ wheres ()
       alt_wheres (alt);
     }
   if (verbose_flag)
-    fprintf (stderr, "glammar transformation fase: %d pairs re-arranged.\n", pair_count);
+    fprintf (stderr, "glammar transformation fase: %ld pairs re-arranged.\n", pair_count);
   if (verbose_flag)
-    fprintf (stderr, "glammar optimization fase: %d wheres eliminated.\n", where_count);
+    fprintf (stderr, "glammar optimization fase: %ld wheres eliminated.\n", where_count);
 }
 
 
 alt_wheres (alt)
-int alt;
+long alt;
 {
-  int member;
+  long member;
 
   prevmem = nil;
   lastmem = alt;
@@ -723,9 +726,9 @@ int alt;
 */
 
 alt_opt_def_mixed_comp (alt)
-int alt;
+long alt;
 {
-  int member;
+  long member;
 
   prevmem = nil;
   lastmem = alt;
@@ -747,7 +750,7 @@ int alt;
 
 
 no_affix_expressions (affix)
-int affix;
+long affix;
 {
   return (BROTHER (SON (affix)) == nil) && (NODENAME (SON (affix)) ==
                                             affixnt) && (BROTHER (SON (BROTHER (affix))) == nil);
@@ -755,15 +758,15 @@ int affix;
 
 
 resolve_where (alt, wher)
-int alt, wher;
+long alt, wher;
 {
-  int a1 = AFFIXTREE (wher);
-  int a2 = BROTHER (a1);
+  long a1 = AFFIXTREE (wher);
+  long a2 = BROTHER (a1);
 
   char *source = REPR (SON (a2));
   char *destination = REPR (SON (a1));
 
-  int affix, term, mem;
+  long affix, term, mem;
 
   for (affix = AFFIXDEF (alt); affix != nil; affix = BROTHER (affix))
     for (term = SON (affix); term != nil; term = BROTHER (term))
@@ -777,12 +780,12 @@ int alt, wher;
 }
 
 
-int lmem;
-int pmem;
+long lmem;
+long pmem;
 
 tail_rec_opt ()
 {
-  int rule;
+  long rule;
   if (no_recursion_elm_flag)
     return;
 
@@ -791,9 +794,9 @@ tail_rec_opt ()
 }
 
 tailrec_elimnation_move_pair_up (rule)
-int rule;
+long rule;
 {
-  int alt, afx;
+  long alt, afx;
 
 #ifdef NVE
   for (afx = AFFIXDEF (SON (rule)); afx != nil; afx = BROTHER (afx))
@@ -804,9 +807,9 @@ int rule;
 #endif
   for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
   {
-    int mem;
-    int afx;
-    int nre = 0;
+    long mem;
+    long afx;
+    long nre = 0;
     lmem = nil;
     pmem = nil;
 
@@ -822,7 +825,7 @@ int rule;
     {
       if (INHERITED (afx))
       {
-        int trm;
+        long trm;
         for (trm = SON (afx); trm != nil; trm = BROTHER (trm))
         {
           if ((NOT_IS_LEFTDEF (trm)) && (NODENAME (trm) == affixnt))
@@ -863,7 +866,7 @@ int rule;
 }
 
 tailrec_alt_lastmem (mem)
-int mem;
+long mem;
 {
 
 
@@ -886,7 +889,7 @@ int mem;
 }
 
 tailrec_alt_lastcut (mem)
-int mem;
+long mem;
 {
 
 
@@ -911,7 +914,7 @@ int mem;
 
 move_terms_up ()
 {
-  int rule, alt;
+  long rule, alt;
 
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
@@ -922,7 +925,7 @@ move_terms_up ()
 }
 
 move_terms_up_mems (ob0, ob, mem, alt)
-int ob0, ob, mem, alt;
+long ob0, ob, mem, alt;
 {
 
   if (mem == nil)
@@ -935,7 +938,7 @@ int ob0, ob, mem, alt;
       && ((NONTERMINAL (ob) && (MARKED (DEF (ob), is_predicate))) || FLAG_MARKED (ob, redirected_input)))
   {
     if (verbose_flag)
-      fprintf (stderr, "moving %s (%d) up over %s(%d) \n", REPR (mem), mem, REPR (ob), ob);
+      fprintf (stderr, "moving %s (%ld) up over %s(%ld) \n", REPR (mem), mem, REPR (ob), ob);
     BROTHER (ob) = BROTHER (mem);
     BROTHER (mem) = ob;
     if (ob0 == nil)
@@ -955,7 +958,7 @@ int ob0, ob, mem, alt;
 }
 
 move_unpair_up_mems (ob0, ob, mem, alt)
-int ob0, ob, mem, alt;
+long ob0, ob, mem, alt;
 {
 
   if (mem == nil)
@@ -964,7 +967,7 @@ int ob0, ob, mem, alt;
       && DEF (mem) == unpair && DEF (ob) != unpair && term_defined_before (alt, ob, REPR (SON (AFFIXTREE (mem)))))
   {
     if (verbose_flag)
-      fprintf (stderr, "moving %s (%d) up over %s(%d) \n", REPR (mem), mem, REPR (ob), ob);
+      fprintf (stderr, "moving %s (%ld) up over %s(%ld) \n", REPR (mem), mem, REPR (ob), ob);
     BROTHER (ob) = BROTHER (mem);
     BROTHER (mem) = ob;
     if (ob0 == nil)
@@ -983,11 +986,11 @@ int ob0, ob, mem, alt;
   }
 }
 
-int term_defined_before (alt, mem, term)
-int alt, mem;
+long term_defined_before (alt, mem, term)
+long alt, mem;
 char *term;
 {
-  int m, a;
+  long m, a;
   for (m = SON (alt); m != mem; m = BROTHER (m))
     for (a = AFFIXTREE (m); a != nil; a = BROTHER (a))
       if (DERIVED (a) && REPR (SON (a)) == term)
@@ -1001,7 +1004,7 @@ char *term;
 
 final_nestarset_removal ()
 {
-  int rule, alt;
+  long rule, alt;
 
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
@@ -1009,25 +1012,31 @@ final_nestarset_removal ()
         altdetnestarset (alt);
 }
 
-int final_nestarset_removal_alt (ob0, ob, mem, alt)
-int ob0, ob, mem, alt;
+long final_nestarset_removal_alt (ob0, ob, mem, alt)
+long ob0, ob, mem, alt;
 {
 
   if (mem == nil)
     return 0;
   if (ob != nil && DEF (ob) == nestarset && (DEF (mem) == nestaralt || DEF (mem) == nestarset))
   {
-    int m = SON (alt);
-    int afx, trm;
+    long m = SON (alt);
+    long afx, trm;
     char *target = REPR (SON (AFFIXTREE (mem)));
     char *equal_target;
-    int equal_mem;
+    long equal_mem;
 
     /* find equal target of source target y , we are looking to make the following deterministic
 
-       # non deterministic t(>x+y+z, y+y>):^!!(y>). -> # non deterministic t(>GG_0,y+y>): setinputptrto_(>GG_0,G_0>),
-       # redirected nestarset(x>), # redirected nestarset(y>), # redirected nestaralt_(z>,>G_0), # redirected ^!!
-       (E_1>), equal(>E_1,>y). -> # non deterministic t(>GG_0,y+y>): ^!! (E_1>), # moved up
+      t(>x+y+z, y+y>):^!!(y>). 
+      t(>GG_0,y+y>): 
+        setinputptrto_(>GG_0,G_0>),
+        nestarset(x>), 
+        nestarset(y>), 
+        nestaralt_(z>,>G_0), 
+        ^!! (E_1>), equal(>E_1,>y).  
+
+      t(>GG_0,y+y>): ^!! (E_1>), 
        setinputptrto_(>GG_0,G_0>), # redirected nestarset(x>), # redirected nestarset(y>), # redirected
        nestaralt_(z>,>G_0), # redirected equal(>E_1,>y). -> # non deterministic t(>GG_0,y+y>): ^!! (y>), # moved up
        setinputptrto_(>GG_0,G_0>), # redirected nestarset(x>), # redirected metaterminal(>y), # redirected
@@ -1039,9 +1048,11 @@ int ob0, ob, mem, alt;
     /* find equal target */
     for (m = SON (alt); m != nil; m = BROTHER (m))
     {
-      int af = AFFIXTREE (m);
-      char *t = REPR (SON (af));
-      int found = false;
+      long af = AFFIXTREE (m);
+      char *t;
+      if (af == nil) continue;
+      t = REPR (SON (af));
+      long found = false;
       if (DEF (m) == equal && (REPR (SON (BROTHER (af))) == target || t == target))
       {
         equal_target = t != target ? REPR (SON (af)) : REPR (SON (BROTHER (af)));
@@ -1109,10 +1120,10 @@ int ob0, ob, mem, alt;
 }
 
 replace_term_in_alt (alt, fr, tr)
-int alt;
+long alt;
 char *fr, *tr;
 {
-  int m, t, a;
+  long m, t, a;
   if (verbose_flag)
     fprintf (stderr, " replacing %s with %s", fr, tr);
   for (m = SON (alt); m != nil; m = BROTHER (m))
@@ -1128,9 +1139,9 @@ char *fr, *tr;
 }
 
 remove_mem_in_alt (alt, mem)
-int alt, mem;
+long alt, mem;
 {
-  int m;
+  long m;
   if (SON (alt) == nil)
     return;
   if (SON (alt) == mem)

@@ -27,7 +27,7 @@ void (*rroot) ();
     {
       if (nrofchars > runtime_input_size - 4)
       {
-        fprintf (stderr, "%s: Input size too large (max %d chars)\n", arg_zero, runtime_input_size - 4);
+        fprintf (stderr, "%s: Input size too large (max %ld chars)\n", arg_zero, runtime_input_size - 4);
         exit (1);
       }
       clear_memo_tab ();
@@ -82,7 +82,7 @@ char *b, *e;
   }
   while (b <= e)
     fprintf (stderr, "%c", *b++);
-  fprintf (stderr, "\n", *b++);
+  fprintf (stderr, "\n"); b++;
 }
 
 int underline (b, e)
@@ -236,9 +236,9 @@ void result ()
     long long max_afx_heap_size = (long long) afhsize * sizeof (affix);
     long long max_char_heap_size = (long long) cssize;
 
-    stack_size = (long long) stack_bottum - (long long) &stack_top;
+    stack_size = (long long) stack_bottom - (long long) &stack_top;
     fprintf (stderr, "\nHere is how much storage glammar used:\n");
-    fprintf (stderr, "eval count = %d\n", eval_count);
+    fprintf (stderr, "eval count = %ld\n", eval_count);
     fprintf (stderr,
              "Backtrack stack size = %ldMiB (out of ?), increase with csh command limit()\n", (stack_size >> 20) + 1);
     fprintf (stderr,
@@ -256,7 +256,10 @@ void result ()
     {
       output = fopen (out_file_name, "w");
       if (!output)
+      {
         fprintf (stderr, "%s: cannot write to `%s'\n", arg_zero, out_file_name);
+        exit(1);
+      }
     }
   }
   printa (output, q->a);
@@ -278,7 +281,10 @@ register AFFIX A, B;
     {
       output = fopen (out_file_name, "w");
       if (!output)
+      {
         fprintf (stderr, "%s: cannot write to `%s'\n", arg_zero, out_file_name);
+        exit(1);
+      }
     }
   }
   printa (output, A);

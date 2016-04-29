@@ -25,81 +25,80 @@
 
 #define true    1
 #define false   0
-#define nil    -2
-#define affixnt 0
-#define superaffix 1 
-#define metaffix 2
-#define adp_affix 4
-#define factor 8
-#define affixtm 16
-#define supernt 32 
-#define meta_alt 64 
-#define mint 128
-#define derived 0
-#define inherited 1
-#define lattice_affix 2
-
+#define nil    (long) -2
+#define affixnt (long) 0
+#define superaffix (long) 1 
+#define metaffix (long) 2
+#define adp_affix (long) 4
+#define factor (long) 8
+#define affixtm (long) 16
+#define supernt (long) 32 
+#define meta_alt (long) 64 
+#define mint (long) 128
+#define derived (long) 0
+#define inherited (long) 1
+#define lattice_affix (long) 2
 /* NODENAME(mem) */
-#define nset         32*4   
-#define longset      64 *4
-#define plusset      128 *4
-#define starset     256*4
-#define complset    512*4
-#define tnode       1024 *4 
-#define cnode       2048 *4 
-#define lookahead   1  
-#define domemo   0  
+#define nset         (long) 32*4   
+#define longset      (long) 64 *4
+#define plusset      (long) 128 *4
+#define starset     (long) 256*4
+#define complset    (long) 512*4
+#define tnode       (long) 1024 *4 
+#define cnode       (long) 2048 *4 
+#define lookahead   (long) 1  
+#define domemo   (long) 0  
 
-#define ntnode           0
+#define ntnode          (long)  0
 
-#define rnode            1
+#define rnode            (long) 1
 
 /* NODENAME(rule) */
-#define docompile                0X000002
-#define processing               0X000004
-#define notemptyrule             0X000008
-#define emptyrule                0X000010
-#define deterministic            0X000020
-#define nondeterministic         0X000040
-#define leftrec                  0X000080
-#define notleftrec               0X000100
-#define recursive                0X000200
-#define notrecursive             0X000400
-#define meta_prod_rule           0X000800
-#define external                 0X001000
-#define rule_used                0X002000
-#define built_aliased            0X004000
-#define isvolatile               0X008000
-#define nonvolatile              0X010000
-#define freestacks_f             0X020000
-#define tail_recursion_opt_f     0X040000
-#define no_tail_recursion_opt_f  0X080000
-#define is_predicate             0X100000
-#define not_a_predicate          0X200000
-#define redirected_input         0X400000
-#define generated_rule           0X800000
+#define docompile              (long)   0X000002
+#define processing             (long)   0X000004
+#define notemptyrule           (long)   0X000008
+#define emptyrule              (long)   0X000010
+#define deterministic          (long)   0X000020
+#define nondeterministic       (long)   0X000040
+#define leftrec                (long)   0X000080
+#define notleftrec             (long)   0X000100
+#define recursive              (long)   0X000200
+#define notrecursive           (long)   0X000400
+#define meta_prod_rule         (long)   0X000800
+#define external               (long)   0X001000
+#define rule_used              (long)   0X002000
+#define built_aliased          (long)   0X004000
+#define isvolatile             (long)   0X008000
+#define nonvolatile            (long)   0X010000
+#define freestacks_f           (long)   0X020000
+#define tail_recursion_opt_f    (long)  0X040000
+#define no_tail_recursion_opt_f (long)  0X080000
+#define is_predicate            (long)  0X100000
+#define not_a_predicate         (long)  0X200000
+#define redirected_input        (long)  0X400000
+#define generated_rule          (long)  0X800000
 
 
 
-#define meta_One  4
-#define meta_OneStar  8
-#define meta_Mult  16
-#define meta_Super  16
-#define meta_Mint  32
-#define One 4
-#define OneStar 8
-#define Mult 16
-#define Super 32
-#define Lattice  64
-#define Mint  164
+#define meta_One  (long) 4
+#define meta_OneStar  (long) 8
+#define meta_Mult  (long) 16
+#define meta_Super  (long) 16
+#define meta_Mint  (long) 32
+#define One (long) 4
+#define OneStar (long) 8
+#define Mult (long) 16
+#define Super (long) 32
+#define Lattice  (long) 64
+#define Mint (long)  164
 
-#define affix_directed_parsing  2
-#define no_affix_directed_parsing  1
+#define affix_directed_parsing  (long) 2
+#define no_affix_directed_parsing  (long) 1
 
-#define maxnt     16384   /* absolute maximum */ 
-#define nearest_prime_maxnt     16381   
-#define MAX_CHARS  1000000  
-#define MAX_ITEMS  30000  
+#define maxnt     (long) 16384   /* absolute maximum */ 
+#define nearest_prime_maxnt    (long)  16381   
+#define MAX_CHARS  (long) 1000000  
+#define MAX_ITEMS  (long) 30000  
 
 /* macros */
 

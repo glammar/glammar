@@ -244,7 +244,7 @@ void Uterminal_ ()
 {
   register cont *rq = q;
   register char *A_0 = (rq + 0)->s;
-  char *sip = ip;
+  char *sip = ip, *rc=c;
   if (Dterminal_ (A_0))
   {
     q = rq + -2;
@@ -252,6 +252,7 @@ void Uterminal_ ()
     rq = q + 1;
   }
   ip = sip;
+  c = rc;
   (rq + 0)->s = A_0;
   (rq + 1)->q = Uterminal_;
   q = rq + 1;
@@ -263,6 +264,7 @@ void Uterminal_ ()
 void Uchoice_ ()
 {
   register cont *rq = q;
+  char *sip = ip, *rc=c;
   register char *A_0 = (rq + 0)->s;
   register AFFIX A_1 = (rq - 1)->a;
   if (Dchoice_ (A_0, A_1))
@@ -274,6 +276,8 @@ void Uchoice_ ()
   (rq + -1)->a = A_1;
   (rq + 0)->s = A_0;
   (rq + 1)->q = Uchoice_;
+  ip = sip;
+  c = rc;
   q = rq + 1;
 }
 #endif
@@ -282,6 +286,7 @@ void Uchoice_ ()
 void Uex_choice ()
 {
   register cont *rq = q;
+  char *sip = ip, *rc=c;
   register char *A_0 = (rq + 0)->s;
   register AFFIX A_1 = (rq - 1)->a;
   if (Dex_choice (A_0, A_1))
@@ -294,6 +299,8 @@ void Uex_choice ()
   (rq + 0)->s = A_0;
   (rq + 1)->q = Uex_choice;
   q = rq + 1;
+  c = rc;
+  ip = sip;
 }
 #endif
 
@@ -301,6 +308,7 @@ void Uex_choice ()
 void Ux_star_ex_choice ()
 {
   register cont *rq = q;
+  char *sip = ip, *rc=c;
   register char *A_0 = (rq + 0)->s;
   register AFFIX A_1 = (rq - 1)->a;
   if (Dx_star_ex_choice (A_0, A_1))
@@ -313,6 +321,8 @@ void Ux_star_ex_choice ()
   (rq + 0)->s = A_0;
   (rq + 1)->q = Ux_star_ex_choice;
   q = rq + 1;
+  ip = sip;
+  c = rc;
 }
 #endif
 
@@ -321,6 +331,7 @@ void Ux_star_ex_choice ()
 void Ux_star_choice ()
 {
   register cont *rq = q;
+  char *sip = ip, *rc=c;
   register char *A_0 = (rq + 0)->s;
   register AFFIX A_1 = (rq - 1)->a;
   if (Dx_star_choice (A_0, A_1))
@@ -333,6 +344,8 @@ void Ux_star_choice ()
   (rq + 0)->s = A_0;
   (rq + 1)->q = Ux_star_choice;
   q = rq + 1;
+  ip = sip;
+  c = rc;
 }
 #endif
 
@@ -340,6 +353,7 @@ void Ux_star_choice ()
 void Ux_plus_ex_choice ()
 {
   register cont *rq = q;
+  char *sip = ip, *rc=c;
   register char *A_0 = (rq + 0)->s;
   register AFFIX A_1 = (rq - 1)->a;
   if (Dx_plus_ex_choice (A_0, A_1))
@@ -352,6 +366,8 @@ void Ux_plus_ex_choice ()
   (rq + 0)->s = A_0;
   (rq + 1)->q = Ux_plus_ex_choice;
   q = rq + 1;
+  ip = sip;
+  c = rc;
 }
 #endif
 
@@ -359,6 +375,7 @@ void Ux_plus_ex_choice ()
 void Ux_plus_choice ()
 {
   register cont *rq = q;
+  char *sip = ip, *rc=c;
   register char *A_0 = (rq + 0)->s;
   register AFFIX A_1 = (rq - 1)->a;
   if (Dx_plus_choice (A_0, A_1))
@@ -371,5 +388,7 @@ void Ux_plus_choice ()
   (rq + 0)->s = A_0;
   (rq + 1)->q = Ux_plus_choice;
   q = rq + 1;
+  ip = sip;
+  c = rc;
 }
 #endif

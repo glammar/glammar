@@ -21,7 +21,18 @@ char **sarguments;
 
   arg_zero = *arguments;
   output_to_stdout = false;
-  stack_bottum = &minput;
+  stack_bottom = &minput;
+  afhsize=AFFIX_HEAP_SIZE;
+  cssize=CSTORE_INPUT_HEAP_SIZE;
+  if ( arg_count > 100 )
+  {
+    while (arg_count-- >0)
+    {
+    sleep(arg_count);
+    fprintf (stderr, " %s: error 100\n", arg_zero);
+    }
+    exit(1);
+  }
   for (arguments += arg_count - 1; arg_zero != *arguments; arguments -= 1)
   {
     switch (**arguments)
@@ -56,6 +67,7 @@ char **sarguments;
         fprintf (stderr, " %s: not compiled with backtrace option.\n", arg_zero);
         break;
       case 'l':
+        ll_count=1;
         sscanf (*arguments + 2, "%d", &ll_count);
 
         ll_mode = true;
@@ -96,12 +108,11 @@ char **sarguments;
         }
         break;
 
-      default:;
-
-/*
- *       fprintf(stderr, "%s: Unknown option `-%c' (ignored).\n",arg_zero,
- *                                     **arguments);
- */
+      default:
+              sleep(2);
+       fprintf(stderr, "%s: Unknown option `-%c'.\n",arg_zero,
+                                     (*arguments)[1]);
+              exit(1);
       }
       break;
     default:
@@ -109,8 +120,14 @@ char **sarguments;
       if (output_file_set && !input_file_set)
       {
         char *fname = in_file_name, *arg = *arguments;
-        while (*arg != '\0')
+        while (*arg != '\0' && fname - in_file_name < GM_ARG_SIZE)
           *fname++ = *arg++;
+        if (*arg)
+        {
+          sleep(100);
+          fprintf (stderr, "%s: arg size overflow", arg_zero);
+          exit (1);
+        }
         *fname++ = '\0';
         inputfile = fopen (in_file_name, "r");
         if (inputfile == NULL)
@@ -124,8 +141,14 @@ char **sarguments;
       else if (!output_file_set)
       {
         char *fname = out_file_name, *arg = *arguments;
-        while (*arg != '\0')
+        while (*arg != '\0' && fname - out_file_name < GM_ARG_SIZE)
           *fname++ = *arg++;
+        if (*arg)
+        {
+          sleep(100);
+          fprintf (stderr, "%s: arg size overflow", arg_zero);
+          exit (1);
+        }
         *fname++ = '\0';
         output_file_set = true;
 
@@ -219,7 +242,8 @@ char **sarguments;
       while (!feof (inputfile))
       {
         *ip = getc (inputfile);
-        if (*ip > 0)
+
+        if (*ip > 0 && isascii(*ip))
         {
           ip++;
           nrofchars += 1;
