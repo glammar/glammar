@@ -23,10 +23,10 @@ OBJS = $(GG:.c=.o)
 MODULE=$(GLAMMAR).a
 SKELFILES = make.local
 MAKEFILE= Makefile
-DISTFILES= $(GG) $(EV) ge40.c $(EVH) $(GGH) glammar-pp.g glammar-fold.g goodout\
- $(MAKEFILE) .version doc examples $(GLAMMAR).g $(GLAMMAR).1 $(GLAMMAR).sty \
-  COPYING VERSION INSTALL glammar.vim cygwin.mk
-JUNK=glammar-pp  builtin-rules.tex glammar-pp.c
+DISTFILES= $(GG) $(EV) ge40.c $(EVH) $(GGH) glammar-pp.g goodout\
+ $(MAKEFILE) .version doc examples $(GLAMMAR).g $(GLAMMAR).1 \
+ $(GLAMMAR).sty COPYING VERSION INSTALL glammar.vim cygwin.mk
+JUNK=glammar-pp  builtin-rules.tex
 # Installation dependent make variables.
 
 # This line is used for automatic installation
@@ -34,8 +34,7 @@ xxx: all
 	@echo
 #++ make module local start, do NOT touch this line. ++
 # full path of the environment
-INSTALLDIR=/net/adc00ova/scratch/evoss
-#INSTALLDIR=/usr
+INSTALLDIR = /usr/local
 
 #  BDIR     : bin directory
 BDIR = $(INSTALLDIR)/bin
@@ -53,7 +52,7 @@ NFULLDS = $(INSTALLDIR)/ds/nfullgl.ds
 NKERNDS = $(INSTALLDIR)/ds/nkerngl.ds
 
 #  HOSTNAME : name of installation machine.
-HOSTNAME=scheduler-rac1
+HOSTNAME=dlsun130
 
 # SYS     : name of operating system or machine type
 #     BSD	For generic BSD systems
@@ -61,8 +60,7 @@ HOSTNAME=scheduler-rac1
 #     HPUX	For all HP-UX systems
 #     SUN	For all SUN systems
 #     APOLLO	For all Apollo systems
-#     LINUX	For all Apollo systems
-SYS = LINUX64
+SYS = CYGWIN
 
 # CLIBLOC : required C libraries
 CLIBLOC =
@@ -75,15 +73,13 @@ PASLIBLOC =
 CBADADR = 0
 
 SYSLINTFLAGS = -hpac
-SYSCFLAGS =  -Xa -xs -xstrconst -mr -xcg92  -wd187
+SYSCFLAGS = -Usun -Xa -xs -xstrconst -mr -xcg92 
 SYSCPROFFLAGS =
 SYSCDBUGFLAGS =
 SYSPFLAGS =
 #CC=/opt/SUNWspro/bin/cc -Usun -Xa -xs -xstrconst -mr -xcg92
 #CC=/opt/SUNWspro/bin/cc -Usun -Xa -xs -xstrconst -mr -xcg92
-CC=cc
-#CC=/usr/local/packages/icc_remote/14.0.6.214/bin/icc -wd187
-
+CC=gcc 
 # Collection of host dependent make rules.
 
 ### libinstall ###
@@ -99,7 +95,7 @@ includeinstall:
 ### maninstall ###
 # MAN		- manual page to install
 maninstall:
-	cp $(MAN) /usr/share/man/man1
+	cp $(MAN) /usr/man/manl
 
 ### texinstall ###
 # TEX		- latex sty files
@@ -120,8 +116,7 @@ arlibinstall:
 
 # Additional system dependent compilation flags:
 SYSPFLAGS =
-#SYSLDFLAGS = -static 
-SYSLDFLAGS = 
+SYSLDFLAGS =
 
 CFLAGS = 
 SYSCFLAGS = -DLIBDIR=\"$(LDIR)\" -DINCLUDEDIR=\"$(IDIR)\"\
@@ -134,9 +129,6 @@ LDFLAGS = $(SYSLDFLAGS)
 help :
 	@echo " Possible make targets:"
 	@echo "sun		Sun Os "
-	@echo "sung	        Sun Os with gnu c-compiler"	
-	@echo "Linux		Linux 32 "
-	@echo "Linux64		Linux 64 "
 	@echo "sung	        Sun Os with gnu c-compiler"	
 	@echo "next	        Next running Mach"
 	@echo "aviion		Data Generals DG-UX" 
@@ -154,16 +146,8 @@ help :
 
 # Add rules for the programs themselves here.
 
-glammar-pp.c: glammar-pp.g 
-	$(GLAMMAR) -s -v -d glammar-pp
-
-glammar-pp: glammar-pp.c
-	$(CC) glammar-pp.c -o glammar-pp glammar.a  
-
-glammar-fold: glammar-fold.g
-	$(GLAMMAR) -s -d glammar-fold
-	$(CC) glammar-fold.c -o glammar-fold glammar.a  
-	rm -f glammar-fold.c 
+glammar-pp: glammar-pp.g
+	$(GLAMMAR) -S -v -d glammar-pp
 
 test : glammar-pp
 	./glammar-pp glammar.g builtin-rules.tex
@@ -178,12 +162,9 @@ distfiles:
 	@echo $(DISTFILES) | tr ' ' '\012'
 
 tar:
-	rm -rf $(PROGRAM)$(VERSION)
-	mkdir $(PROGRAM)$(VERSION)
-	cp -pr $(DISTFILES) $(PROGRAM)$(VERSION)
-	tar -jcf $(PROGRAM)$(VERSION).tbz $(PROGRAM)$(VERSION)
-	rm -rf $(PROGRAM)$(VERSION)
-
+	tar -cf $(PROGRAM)$(VERSION).tar $(DISTFILES) 
+gtar: 
+	gtar -Icf $(PROGRAM)$(VERSION).tgb $(DISTFILES)
 
 setup:
 	Config/modmake local Config/make.local $(MAKEFILE)
@@ -194,27 +175,22 @@ setup:
 COMPILE.c= $(CC) -c $(CFLAGS) -D$(SYS)
 LINK.c= $(PURIFY) $(CC)
 
-$(GLAMMAR)-c.a: $(OBJS) 
-	ar r  $@ $(OBJS) 
-	
-$(GLAMMAR): $(GLAMMAR)-c.a
-	$(LINK.c) $(LDFLAGS) -o $@ $(GLAMMAR)-c.a
+$(GLAMMAR): $(OBJS) 
+	$(LINK.c) $(LDFLAGS) -o $@ $(OBJS) 
 
-install:  
+install: glammar  
 	make 'MODULE=$(GLAMMAR).a' arlibinstall
-	make 'MODULE=$(GLAMMAR)-c.a' arlibinstall
-	make 'MODULE=$(GLAMMAR)' bininstall
+	make 'MODULE=$(GLAMMAR).exe' bininstall
 	make 'MODULE=$(IH1)' includeinstall
 	make 'MODULE=$(IH2)' includeinstall
 	make 'MODULE=$(GLAMMAR).g' libinstall
 	@echo "enter 'make install-glammar-pp'"
 
 install-glammar-pp: glammar-pp
-	make 'MODULE=$(GLAMMAR)-pp' bininstall
+	make 'MODULE=$(GLAMMAR)-pp.exe' bininstall
 	make 'STY=glammar.sty' texinstall
 
-pretty:   
-	indent -nbad -bap -bbb -bbo -bl -blf -bli0 -bls -cbi0 -ci40 -cli0 -fca -i2 -l120 -di0 -ip0 -nut -npsl $(GG) $(EV) 
+
 all: $(SYS)
 
 allsystems: $(GLAMMAR) $(GLAMMAR).a
@@ -251,24 +227,22 @@ second:$(EV) $(MP)
 #		 -DLONGJ  :- long jump flag (-J) for cc 
 #
 
-linux LINUX:
-	@echo SYS=$(SYS)
-	make allsystems  NOMP=-DNOMP\
-            VERSION="`cat .version` `date`"
-	
-linux64 LINUX64:
-	@echo SYS=$(SYS)
-	make allsystems  NOMP=-DNOMP\
-               ADDRESSING=-DEIGHT_BYTE_ADDR\
-               VERSION="`cat .version` `date`"
+
 
 sun SUN:
 	@echo SYS=$(SYS)
 	make allsystems \
-            MPE="ge40.c "\
-            NOSTRIP=-DNOSTRIP \
-            VERSION="`cat .version` `date`"
+	MPE="ge40.c "\
+	NOSTRIP=-DNOSTRIP \
+	VERSION="`cat .version` `date`"
 	
+
+
+#Cygwin
+CYGWIN:
+	@echo SYS=$(SYS)
+	make allsystems NOMP=-DNOMP\
+		VERSION="`cat .version` `date`"
 
 
 vers= `cat .version`
@@ -354,9 +328,8 @@ ge05: ge05.c
 	 $(COMPILE.c) -DUWHITESPACE ge05.c ; mv ge05.o t46a.o
 	 $(COMPILE.c) -DLENGTH ge05.c ; mv ge05.o t47.o
 	 $(COMPILE.c) -DULENGTH ge05.c ; mv ge05.o t48.o
-	 $(COMPILE.c) -DBASE64 ge05.c ; mv ge05.o t48a.o
-	ar rv $(GLAMMAR).a  t48a.o t48.o t47.o t46.o t46a.o t45a.o t45.o t44.o t43.o
-	rm -f  t48a.o t48.o t47.o t46a.o t46.o t45.o t45a.o t44.o t43.o
+	ar rv $(GLAMMAR).a  t48.o t47.o t46.o t46a.o t45a.o t45.o t44.o t43.o
+	rm -f  t48.o t47.o t46a.o t46.o t45.o t45a.o t44.o t43.o
 ge06: ge06.c
 	 $(COMPILE.c) -DDTYPEIN ge06.c ; mv ge06.o t49.o
 	 $(COMPILE.c) -DDTYPEOUT ge06.c ; mv ge06.o t50.o
@@ -407,10 +380,8 @@ ge09: ge09.c
 ge10: ge10.c
 	 $(COMPILE.c) -DDUNIXCON ge10.c ; mv ge10.o t77.o
 	 $(COMPILE.c) -DUUNIXCON ge10.c ; mv ge10.o t78.o
-	 $(COMPILE.c) -DDTOUTC ge10.c ; mv ge10.o t78a.o
-	 $(COMPILE.c) -DUTOUTC ge10.c ; mv ge10.o t78b.o
-	ar rv $(GLAMMAR).a  t78.o t78a.o  t78b.o  t77.o
-	rm -f  t78.o t78a.o  t78b.o  t77.o
+	ar rv $(GLAMMAR).a  t78.o t77.o
+	rm -f  t78.o t77.o
 ge11: ge11.c
 	 $(COMPILE.c) -DUEQUAL ge11.c ; mv ge11.o t79.o
 	 $(COMPILE.c) -DUNOTEQUAL ge11.c ; mv ge11.o t80.o
@@ -494,16 +465,16 @@ ge21: ge21.c
 	ar rv $(GLAMMAR).a  t133.o
 	rm -f  t133.o
 ge22: ge22.c
-	 $(COMPILE.c) $(ADDRESSING)  -DLOOP ge22.c ; mv ge22.o t134.o
-	 $(COMPILE.c) $(ADDRESSING) -DERMSG ge22.c ; mv ge22.o t135.o
-	 $(COMPILE.c) $(ADDRESSING) -DPRINTA ge22.c ; mv ge22.o t136.o
-	 $(COMPILE.c) $(ADDRESSING) -DDREPORT ge22.c ; mv ge22.o t136a.o
-	 $(COMPILE.c) $(ADDRESSING) -DUREPORT ge22.c ; mv ge22.o t136b.o
+	 $(COMPILE.c) -DLOOP ge22.c ; mv ge22.o t134.o
+	 $(COMPILE.c) -DERMSG ge22.c ; mv ge22.o t135.o
+	 $(COMPILE.c) -DPRINTA ge22.c ; mv ge22.o t136.o
+	 $(COMPILE.c) -DDREPORT ge22.c ; mv ge22.o t136a.o
+	 $(COMPILE.c) -DUREPORT ge22.c ; mv ge22.o t136b.o
 	ar rv $(GLAMMAR).a  t136a.o t136b.o t136.o t135.o t134.o
 	rm -f  t136a.o t136b.o t136.o t135.o t134.o
 ge23: ge23.c
 	 $(COMPILE.c) -DSET_ERRMSG ge23.c ; mv ge23.o t137.o
-	 $(COMPILE.c) $(ADDRESSING) -DAFXCMP ge23.c ; mv ge23.o t138.o
+	 $(COMPILE.c) -DAFXCMP ge23.c ; mv ge23.o t138.o
 	ar rv $(GLAMMAR).a  t138.o t137.o
 	rm -f  t138.o t137.o
 ge30: ge30.c

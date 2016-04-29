@@ -31,7 +31,7 @@ extern char *input,*cstore,*cstore_top, *mip,*limitip, *empty ,
 extern char *ipstart, *ipend, *ipln;
 extern AFFIX affix_heap,afx_top;
  
-extern  int rcount, rmax,parsecount,nrofchars,level,eval_count, q_size;
+extern  long int rcount, rmax,parsecount,nrofchars,level,eval_count, q_size;
 #ifdef MEMOIZE
 extern  int memo_table[MEMOIZE][INPUT_MEMO_SIZE];
 #endif

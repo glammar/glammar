@@ -1,5 +1,14 @@
+version 2.19 [ evoss 150710]
+   - fix undeterminstic terminals to restore cstore
+   - make nestarset non predicate
+   - fix core dump in glammar gg06.c
+   - make max abq level INT_MAX 
+version 2.19 [ evoss 150710]
+   - increase default cstore size to 100MB and affix heap size to 780MB 
+   - fix issues reported with fuzz (argument parsing)
 version 2.18 [ evoss 140930]
    - add base64 encode /decode
+   - changes for icc (intel compiler) which makes programs  el5 and el6 compatible
 version 2.17 [ evoss 140103]
   - add glammar-c.a (contains all gg*.o objects) such that glammar exe can be made
       like in gcc -o glammar glammar-c.a, such that we can use the same code regardless

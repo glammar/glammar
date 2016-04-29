@@ -15,12 +15,17 @@
 
 #include "gg1.h"
 #include "gg2.h"
-int det_count = 0, nondet_count = 0, memo_count = 0, recursive_count = 0;
-int last_alt = true, memo_gain;
-int rec_count = 0;
+long det_count = 0, nondet_count = 0, memo_count = 0, recursive_count = 0;
+long last_alt = true, memo_gain;
+long rec_count = 0;
+long adp_rule (long rule, long count);
+void left_rec_rule (long rule);
+long get_affix (long afx, long count);
+void recursive_rule (long rule);
+
 init_builtins ()
 {
-  int rule, alt;
+  long rule, alt;
 
   equal = get_builtin ("equal");
   if (meta_uniq_flag)
@@ -68,7 +73,7 @@ init_builtins ()
 get_builtin (repr)
 register char *repr;
 {
-  register int rule, rr;
+  register long rule, rr;
   for (rule = laststdpred; (rule != nil) && (!mystrcmp (REPR (rule), repr)); rule = BROTHER (rule));
   if (rule == nil)
   {
@@ -90,7 +95,7 @@ register char *repr;
 get_meta_builtin (repr)
 register char *repr;
 {
-  register int rule, rr;
+  register long rule, rr;
   rr = nil;
   for (rule = lastmetarule; rule != nil; rule = BROTHER (rule))
     if (mystrcmp (REPR (rule), repr))
@@ -118,7 +123,7 @@ register char *repr;
 
 determ ()
 {
-  int rule;
+  long rule;
   if (!lift_flag)
   {
     if (det_flag)
@@ -175,12 +180,12 @@ determ ()
     /* det_flag = true; */
   }
   if (verbose_flag)
-    fprintf (stderr, "glammar semantic compute: Deterministic: (%d,%d)\n", det_count, nondet_count);
+    fprintf (stderr, "glammar semantic compute: Deterministic: (%ld,%ld)\n", det_count, nondet_count);
 }
 
 check_determ ()
 {
-  int alt, rule, again, over = 0, mem;
+  long alt, rule, again, over = 0, mem;
   do
   {
     again = 0;
@@ -204,11 +209,11 @@ check_determ ()
   }
   while (again > 0);
   if (over > 2)
-    fprintf (stderr, "glammar semantic compute: deterministic: needed %d re-computations\n", over);
+    fprintf (stderr, "glammar semantic compute: deterministic: needed %ld re-computations\n", over);
 }
 
 compute_determ (rule)
-int rule;
+long rule;
 {
   if (rule == laststdpred)
     return;
@@ -221,7 +226,7 @@ int rule;
 }
 
 determ_rule (rule)
-int rule;
+long rule;
 {
   if (MARKED (rule, nondeterministic))
   {
@@ -273,7 +278,7 @@ int rule;
 
 
 determ_alts (alt)
-int alt;
+long alt;
 {
   for (; alt != nil; alt = BROTHER (alt))
   {
@@ -290,10 +295,10 @@ int alt;
 
 
 determ_mems (member)
-int member;
+long member;
 {
-  int cut_in_alt = last_alt;
-  register int mem = member;
+  long cut_in_alt = last_alt;
+  register long mem = member;
   if (!cut_in_alt)
     for (; mem != nil; mem = BROTHER (mem))
       if (DEF (mem) == cut)
@@ -327,11 +332,11 @@ empty ()
 
 set_nr_of_mems ()
 {
-  int rule, alt, mem;
+  long rule, alt, mem;
   for (rule = root; rule != nil; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
     {
-      int nr_mems = 0;
+      long nr_mems = 0;
       for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
         if (FLAG_MARKED (mem, redirected_input))
           continue;
@@ -350,10 +355,10 @@ set_nr_of_mems ()
 
 set_nr_of_mems_preds ()
 {
-  int rule, alt, mem, no_mems;
+  long rule, alt, mem, no_mems;
   for (rule = root; rule != nil; rule = BROTHER (rule))
   {
-    int nr_mems = 0;
+    long nr_mems = 0;
     for (alt = SON (rule); !MARKED (rule, not_a_predicate) && alt != nil; alt = BROTHER (alt))
     {
       for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
@@ -374,9 +379,9 @@ set_nr_of_mems_preds ()
 }
 
 decrease_mem_count_preds (rule)
-int rule;
+long rule;
 {
-  int rl, alt, mem;
+  long rl, alt, mem;
   for (rl = root; rl != nil; rl = BROTHER (rl))
     if ((!MARKED (rl, not_a_predicate)) && (!MARKED (rl, is_predicate)))
     {
@@ -397,7 +402,7 @@ int rule;
 
 set_nonpreds ()
 {
-  int rule, preds = 0, non_preds = 0;
+  long rule, preds = 0, non_preds = 0;
   for (rule = root; rule != nil; rule = BROTHER (rule))
     if (!MARKED (rule, is_predicate))
     {
@@ -407,13 +412,13 @@ set_nonpreds ()
     else
       preds += 1;
   if (verbose_flag)
-    fprintf (stderr, "predicates: (%d,%d)\n", preds, non_preds);
+    fprintf (stderr, "predicates: (%ld,%ld)\n", preds, non_preds);
 }
 
 decrease_mem_count (rule)
-int rule;
+long rule;
 {
-  int rl, alt, mem;
+  long rl, alt, mem;
   for (rl = root; rl != nil; rl = BROTHER (rl))
     if ((!MARKED (rl, emptyrule)) && (!MARKED (rl, notemptyrule)))
       for (alt = SON (rl); alt != nil; alt = BROTHER (alt))
@@ -433,11 +438,11 @@ int rule;
 }
 
 
-int et = 0, net = 0;
+long et = 0, net = 0;
 
 set_notempty ()
 {
-  int rule;
+  long rule;
   for (rule = root; rule != nil; rule = BROTHER (rule))
     if (!MARKED (rule, emptyrule))
     {
@@ -447,7 +452,7 @@ set_notempty ()
     else
       et += 1;
   if (verbose_flag)
-    fprintf (stderr, "empty: (%d,%d)\n", et, net);
+    fprintf (stderr, "empty: (%ld,%ld)\n", et, net);
 }
 
 adp_walk ()
@@ -459,18 +464,18 @@ adp_walk ()
   add_skip ();
 
   if (verbose_flag)
-    fprintf (stderr, "%d productions memoized (table size = %ldk)\n",
+    fprintf (stderr, "%ld productions memoized (table size = %ldk)\n",
              memo_count, (memo_count * (runtime_input_size >> 3)) >> 10);
 
   compute_memo_gain ();
   if (verbose_flag)
-    fprintf (stderr, "glammar: %d more productions memorized because of semantic computations\n", memo_gain);
+    fprintf (stderr, "glammar: %ld more productions memorized because of semantic computations\n", memo_gain);
 
 }
 
 add_skip ()
 {
-  register int rule, alt;
+  register long rule, alt;
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     if (MARKED (rule, nondeterministic))
       for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
@@ -479,7 +484,7 @@ add_skip ()
 }
 
 no_iha (afx)
-int afx;
+long afx;
 {
   for (; afx != nil; afx = BROTHER (afx))
     if (INHERITED (afx))
@@ -488,11 +493,11 @@ int afx;
 }
 
 add_skip_in_alt (alt)
-int alt;
+long alt;
 {
-  register int afx, skip_mem, max_count = 10000, count, mem, prev_mem, af, tm;
+  register long afx, skip_mem, max_count = 10000, count, mem, prev_mem, af, tm;
   char *reprterm;
-  int all_empty;
+  long all_empty;
   for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
     if (TERMINAL (mem));
     else if (MARKED (DEF (mem), nondeterministic))
@@ -562,7 +567,7 @@ int alt;
 
 adp_clear ()
 {
-  register int rule, afx, alt;
+  register long rule, afx, alt;
 
   for (rule = root; rule != nil; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
@@ -575,7 +580,7 @@ adp_clear ()
 
 adp_stddefs ()
 {
-  register int rule, afx, alt;
+  register long rule, afx, alt;
   for (rule = laststdpred; rule != nil; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
       for (afx = AFFIXDEF (alt); afx != nil; afx = BROTHER (afx))
@@ -588,7 +593,7 @@ adp_stddefs ()
 
 adp_rest ()
 {
-  register int rule, afx, alt, count;
+  register long rule, afx, alt, count;
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     for (afx = AFFIXDEF (SON (rule)), count = 0; afx != nil; afx = BROTHER (afx), count++)
       if (INHERITED (afx))
@@ -597,10 +602,10 @@ adp_rest ()
 
 alt_adp (reprtrm, mem)
 char *reprtrm;
-int mem;
+long mem;
 {
-  int count = 0;
-  register int trm, afx;
+  long count = 0;
+  register long trm, afx;
   for (; mem != nil; mem = BROTHER (mem))
     for (count = 0, afx = AFFIXTREE (mem); afx != nil; afx = BROTHER (afx), count += 1)
       if (INHERITED (afx))
@@ -610,7 +615,7 @@ int mem;
               return 1;
             else
             {
-              int af;
+              long af;
               for (af = AFFIXTREE (mem); af != nil; af = BROTHER (af))
                 if (NODENAME (af) == derived)
                   if (alt_adp (REPR (SON (af)), BROTHER (mem)))
@@ -619,10 +624,10 @@ int mem;
   return 0;
 }
 
-int adp_rule (rule, count)
-int rule, count;
+long adp_rule (rule, count)
+long rule, count;
 {
-  int afx, alt;
+  long afx, alt;
   for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
   {
     afx = get_affix (AFFIXDEF (alt), count);
@@ -657,21 +662,21 @@ int rule, count;
   return false;
 }
 
-int get_affix (afx, count)
-int afx, count;
+long get_affix (afx, count)
+long afx, count;
 {
   for (; afx != nil; afx = BROTHER (afx), count -= 1)
     if (INHERITED (afx))
       if (count == 0)
         return afx;
-  fprintf (stderr, "glammar: fatal compiler error in adp.get_affix (count was %d)\n", count);
+  fprintf (stderr, "glammar: fatal compiler error in adp.get_affix (count was %ld)\n", count);
   exit (-1);
   return 0;                     /* Bypass compiler warning */
 }
 
 left_rec ()
 {
-  int rule;
+  long rule;
   left_rec_rule (root);
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     if (MARKED (rule, leftrec))
@@ -683,7 +688,7 @@ left_rec ()
     }
 }
 
-left_rec_rule (rule)
+void left_rec_rule (long rule)
 {
   if (MARKED (rule, processing))
   {
@@ -703,7 +708,7 @@ left_rec_rule (rule)
 
 
 left_rec_alts (alt)
-int alt;
+long alt;
 {
   for (; alt != nil; alt = BROTHER (alt))
     left_rec_mem (SON (alt));
@@ -711,11 +716,11 @@ int alt;
 
 
 left_rec_mem (member)
-int member;
+long member;
 {
   for (; member != nil; member = BROTHER (member))
   {
-    int rule = DEF (member);
+    long rule = DEF (member);
     if (TERMINAL (member))
       return;
     else if (!MARKED (rule, emptyrule))
@@ -731,18 +736,18 @@ int member;
 
 recursive_ ()
 {
-  int rule;
+  long rule;
   recursive_rule (root);
   if (verbose_flag)
   {
     for (rule = root; rule != laststdpred; rule = BROTHER (rule))
       if (MARKED (rule, recursive))
         recursive_count += 1;
-    fprintf (stderr, "glammar semantic compute: %d rules are recursive\n", recursive_count);
+    fprintf (stderr, "glammar semantic compute: %ld rules are recursive\n", recursive_count);
   }
 }
 
-recursive_rule (rule)
+void recursive_rule (long rule)
 {
   if (MARKED (rule, processing))
   {
@@ -762,9 +767,9 @@ recursive_rule (rule)
 
 
 recursive_alts (alt)
-int alt;
+long alt;
 {
-  register member;
+  register long member;
   for (; alt != nil; alt = BROTHER (alt))
     for (member = SON (alt); member != nil; member = BROTHER (member))
       if (TERMINAL (member));
@@ -775,7 +780,7 @@ int alt;
 
 compute_memo_gain ()
 {
-  register int rule, alt;
+  register long rule, alt;
 
   nr_of_memo_alts = memo_count;
   memo_gain = 0;
@@ -791,9 +796,9 @@ compute_memo_gain ()
 
 
 inherited_afx (alt)
-int alt;
+long alt;
 {
-  int afx;
+  long afx;
 
   for (afx = AFFIXDEF (alt); afx != nil; afx = BROTHER (afx))
     if (NODENAME (afx) == inherited)
@@ -803,10 +808,10 @@ int alt;
 
 
 hint_on_non_used_hyperrules (local)
-int local;
+long local;
 {
-  int rule;
-  int l = 0;
+  long rule;
+  long l = 0;
 
   if (local)
     l = external;
@@ -825,16 +830,16 @@ int local;
 
 int tag_cmp (const void *e1, const void *e2)
 {
-  int r1, r2;
-  r1 = *((int *) e1);
-  r2 = *((int *) e2);
+  long r1, r2;
+  r1 = *((long *) e1);
+  r2 = *((long *) e2);
   return strcmp (REPR (r1), REPR (r2));
 }
 
 tag_index ()
 {
-  int alt, rule, rrule, mem;
-  int *list, nr = 1;
+  long alt, rule, rrule, mem;
+  long *list, nr = 1;
 
   if (output == stdout)
   {
@@ -875,7 +880,7 @@ tag_index ()
     }
   }
 
-  list = malloc (sizeof (int) * nr);
+  list = malloc (sizeof (long) * nr);
   nr = 0;
   for (rrule = root; rrule != laststdpred; rrule = BROTHER (rrule))
   {
@@ -895,12 +900,12 @@ tag_index ()
       list[nr++] = rrule;
     }
 
-  qsort (list, (size_t) nr, sizeof (int), tag_cmp);
+  qsort (list, (size_t) nr, sizeof (long), tag_cmp);
 
   for (rule = 0; rule < nr; rule++)
   {
     rrule = list[rule];
-    if (fprintf (tagindexfile, "%s\t%s\t%d\n", FREPR (rrule), PART (rrule), LINE (rrule)) == EOF)
+    if (fprintf (tagindexfile, "%s\t%s\t%ld\n", FREPR (rrule), PART (rrule), LINE (rrule)) == EOF)
       fprintf (stderr, "glammar: Write to tag index file failed\n");
   }
 
@@ -909,7 +914,7 @@ tag_index ()
 
 better_index ()
 {
-  int alt, rule, rrule, mem;
+  long alt, rule, rrule, mem;
   for (rrule = root; rrule != laststdpred; rrule = BROTHER (rrule))
 
   {
@@ -936,10 +941,10 @@ better_index ()
 
 
 
-int vol_count, nonvol_count;
+long vol_count, nonvol_count;
 set_volatile ()
 {
-  int alt, rule, mem;
+  long alt, rule, mem;
   SET (assign, isvolatile);
   SET (repair, isvolatile);
   SET (add_to, isvolatile);
@@ -961,14 +966,14 @@ set_volatile ()
   if ((MARKED (root, isvolatile)))
   {
     if (verbose_flag)
-      fprintf (stderr, "glammar semantic compute: Grammar is volatile (%d, %d).\n", vol_count, nonvol_count);
+      fprintf (stderr, "glammar semantic compute: Grammar is volatile (%ld, %ld).\n", vol_count, nonvol_count);
   }
 
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
     {
-      int afx;
-      int noderived = true;
+      long afx;
+      long noderived = true;
       for (afx = AFFIXDEF (alt); afx != nil; afx = BROTHER (afx))
         if (DERIVED (afx))
           break;
@@ -994,7 +999,7 @@ set_volatile ()
 
 check_volatile ()
 {
-  int alt, rule, again, over = 0, mem;
+  long alt, rule, again, over = 0, mem;
   do
   {
     again = 0;
@@ -1017,12 +1022,12 @@ check_volatile ()
       over += 1;
   }
   while (again > 0);
-  if (over > 1)
-    fprintf (stderr, "glammar semantic compute: isvolatile: needed %d re-computations\n", over);
+  if (over > 3)
+    fprintf (stderr, "glammar semantic compute: isvolatile: needed %ld re-computations\n", over);
 }
 
 compute_volatile (rule)
-int rule;
+long rule;
 {
   if (rule == laststdpred)
     return;
@@ -1031,7 +1036,7 @@ int rule;
 }
 
 volatile_rule (rule)
-int rule;
+long rule;
 {
   if (MARKED (rule, nonvolatile))
   {
@@ -1064,7 +1069,7 @@ int rule;
 
 
 volatile_alts (alt)
-int alt;
+long alt;
 {
   for (; alt != nil; alt = BROTHER (alt))
   {
@@ -1076,9 +1081,9 @@ int alt;
 
 
 volatile_mems (member)
-int member;
+long member;
 {
-  int mem = member;
+  long mem = member;
 
   for (mem = member; mem != nil; mem = BROTHER (mem))
     if ((TERMINAL (mem)));
