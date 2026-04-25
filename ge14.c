@@ -8,8 +8,7 @@
 */
 #include "ge1.h"
 #ifdef DLEXICALLESS
-int Dlexicalless (A, B)
-register AFFIX A, B;
+int Dlexicalless (AFFIX A, AFFIX B) 
 {
   register char *rc = c, *xs = rc, *ys;
   if (A == B)
@@ -37,8 +36,7 @@ register AFFIX A, B;
 #endif
 
 #ifdef DLEXICALMORE
-int Dlexicalmore (A, B)         /* lifted equal */
-register AFFIX A, B;
+int Dlexicalmore (AFFIX A, AFFIX B) 
 {
   register char *rc = c, *xs = rc, *ys;
   if (A == B)
@@ -66,8 +64,7 @@ register AFFIX A, B;
 #endif
 
 #ifdef DLEXICALLESSEQUAL
-int Dlexicallessequal (A, B)    /* lifted equal */
-register AFFIX A, B;
+int Dlexicallessequal (AFFIX A, AFFIX B) 
 {
   register char *rc = c, *xs = rc, *ys;
   if (A == B)
@@ -95,8 +92,7 @@ register AFFIX A, B;
 #endif
 
 #ifdef DLEXICALMOREEQUAL
-int Dlexicalmoreequal (A, B)    /* lifted equal */
-register AFFIX A, B;
+int Dlexicalmoreequal (AFFIX A, AFFIX B) 
 {
   register char *rc = c, *xs = rc, *ys;
   if (A == B)

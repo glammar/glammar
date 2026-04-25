@@ -8,8 +8,7 @@
 */
 #include "ge1.h"
 #ifdef DCOMPUTE
-int Dcompute (I_0, D_1)         /* real to int */
-register AFFIX I_0, D_1;
+int Dcompute (AFFIX I_0, AFFIX D_1) 
 {
   char *expr = c;
   signed long long val = 0;
@@ -23,18 +22,19 @@ register AFFIX I_0, D_1;
     *c++ = '\0';
   }
 
+  if (c +51 > cstore_top)
+    cstore_overflow ();
   thischar = expr;
   expression (&val);
   D_1->t = c;
   D_1->l = nil;
   D_1->r = nil;
-  (void) sprintf (c, "%lld\0", val);
-  c += 20;
+  (void) sprintf (c, "%lld", val);
+  c += strlen(c)+1;
   return true;
 }
 
-expression (val)
-signed long long *val;
+int expression (signed long long *val) 
 {
   if (simple_expression (val))
   {
@@ -44,15 +44,14 @@ signed long long *val;
   return false;
 }
 
-forced_expression (val)
-signed long long *val;
+int forced_expression (signed long long *val) 
 {
   if (!expression (val))
     fprintf (stderr, "Compute: expression expected");
+  return true;
 }
 
-simple_expression (val)
-signed long long *val;
+int simple_expression (signed long long *val) 
 {
   if (is_plus_symbol ())
   {
@@ -75,18 +74,18 @@ signed long long *val;
   return false;
 }
 
-forced_simple_expression (val)
-signed long long *val;
+int forced_simple_expression (signed long long *val) 
 {
   if (!simple_expression (val))
   {
     fprintf (stderr, "Compute: simple expression expected\n");
     *val = 0;
+    return false;
   }
+  return true;
 }
 
-term (val)
-signed long long *val;
+int term (signed long long *val) 
 {
   if (factor (val))
   {
@@ -96,18 +95,17 @@ signed long long *val;
   return false;
 }
 
-forced_term (val)
-signed long long *val;
+int forced_term (signed long long *val) 
 {
   if (!term (val))
   {
     fprintf (stderr, "Compute: term expected\n");
     *val = 0;
   }
+  return true;
 }
 
-factor (val)
-signed long long *val;
+int factor (signed long long *val) 
 {
   if (is_number (val))
     return true;
@@ -123,19 +121,35 @@ signed long long *val;
     *val = !*val;
     return true;
   }
+  return true;
 }
 
-forced_close_symbol ()
+long forced_close_symbol ()
 {
   if (!is_close_symbol ())
     fprintf (stderr, "Compute: close symbol expected\n");
+  return true;
 }
 
-more_expression (val)
-signed long long *val;
+int more_expression (signed long long *val) 
 {
   signed long long v2;
-  if (is_equal_symbol ())
+  if (is_not_equal_symbol ())
+  {
+    forced_simple_expression (&v2);
+    *val = (*val != v2);
+  }
+  else if (is_less_equal_symbol ())
+  {
+    forced_simple_expression (&v2);
+    *val = (*val <= v2);
+  }
+  else if (is_greater_equal_symbol ())
+  {
+    forced_simple_expression (&v2);
+    *val = (*val >= v2);
+  }
+  else if (is_equal_symbol ())
   {
     forced_simple_expression (&v2);
     *val = (*val == v2);
@@ -155,10 +169,10 @@ signed long long *val;
     forced_simple_expression (&v2);
     *val = (*val > v2);
   }
+ return true;
 }
 
-more_simple_expression (val)
-signed long long *val;
+int more_simple_expression (signed long long *val) 
 {
   signed long long v2;
   if (is_plus_symbol ())
@@ -172,10 +186,10 @@ signed long long *val;
     *val -= v2;
     more_simple_expression (val);
   }
+ return true;
 }
 
-more_term (val)
-signed long long *val;
+int more_term (signed long long *val) 
 {
   signed long long v2;
   if (is_times_symbol ())
@@ -190,10 +204,11 @@ signed long long *val;
     *val /= v2;
     more_term (val);
   }
+ return true;
 }
 
 
-is_plus_symbol ()
+long is_plus_symbol ()
 {
   if (*thischar == '+')
   {
@@ -203,7 +218,7 @@ is_plus_symbol ()
   return false;
 }
 
-is_minus_symbol ()
+long is_minus_symbol ()
 {
   if (*thischar == '-')
   {
@@ -213,8 +228,7 @@ is_minus_symbol ()
   return false;
 }
 
-is_number (val)
-signed long long *val;
+int is_number (signed long long *val) 
 {
   signed long long pval;
   char *st = thischar;
@@ -259,7 +273,7 @@ signed long long *val;
       }
       if (pval > *val)
       {
-        fprintf (stderr, "glammar: compute integer overflow %.*s\n", thischar - st, st);
+        fprintf (stderr, "glammar: compute integer overflow %.*s\n", (int)(thischar - st), st);
         exit (1);
       }
     }
@@ -269,7 +283,7 @@ signed long long *val;
   return false;
 }
 
-is_open_symbol ()
+long is_open_symbol ()
 {
   if (*thischar == '(')
   {
@@ -279,7 +293,7 @@ is_open_symbol ()
   return false;
 }
 
-is_not_symbol ()
+long is_not_symbol ()
 {
   if (*thischar == '~')
   {
@@ -289,7 +303,7 @@ is_not_symbol ()
   return false;
 }
 
-is_close_symbol ()
+long is_close_symbol ()
 {
   if (*thischar == ')')
   {
@@ -299,7 +313,7 @@ is_close_symbol ()
   return false;
 }
 
-is_equal_symbol ()
+long is_equal_symbol ()
 {
   if (*thischar == '=')
   {
@@ -309,17 +323,33 @@ is_equal_symbol ()
   return false;
 }
 
-is_not_equal_symbol ()
+long is_not_equal_symbol ()
 {
   if (*thischar == '#')
   {
     thischar++;
     return true;
   }
+  else if (*thischar == '!' && thischar[1] == '=')
+  {
+    thischar++;
+    thischar++;
+    return true;
+  }
   return false;
 }
 
-is_less_symbol ()
+long is_less_equal_symbol ()
+{
+  if (*thischar == '<' && thischar[1] == '=')
+  {
+    thischar++;
+    thischar++;
+    return true;
+  }
+  return false;
+}
+long is_less_symbol ()
 {
   if (*thischar == '<')
   {
@@ -329,7 +359,7 @@ is_less_symbol ()
   return false;
 }
 
-is_greater_symbol ()
+long is_greater_symbol ()
 {
   if (*thischar == '>')
   {
@@ -338,8 +368,18 @@ is_greater_symbol ()
   }
   return false;
 }
+long is_greater_equal_symbol ()
+{
+  if (*thischar == '>' && thischar[1] == '=')
+  {
+    thischar++;
+    thischar++;
+    return true;
+  }
+  return false;
+}
 
-is_times_symbol ()
+long is_times_symbol ()
 {
   if (*thischar == '*')
   {
@@ -349,7 +389,7 @@ is_times_symbol ()
   return false;
 }
 
-is_divide_symbol ()
+long is_divide_symbol ()
 {
   if (*thischar == '/')
   {

@@ -1,4 +1,3 @@
-
 /*
 
     This file is a part of the GLAMMAR source distribution 
@@ -6,7 +5,7 @@
     
     Copyright (C) 1989,2012  Eric Voss, eric337@yahoo.com 
 
-
+*/
 /* file     general transactions on the data structure 
    * print back in glammar source
    * make a contex free grammar  : stripe affixes
@@ -16,25 +15,54 @@
 
 #include "gg1.h"
 #include "gg2.h"
-static int do_trick = false;
-printtree ()
+static long do_trick = false;
+
+/* exports
+void printtree ();
+void id_tree ();
+void print_cfg_tree ();
+void parse_tree ();
+*/
+
+static void print_lattice (long rule);
+static void print_rule (long rule_item);
+static void print_lhs (long rule_item, long alt_item);
+void print_rhs (long mem_item);
+static int printaffixtree (long tree);
+static void print_cfg_rule (long rule_item);
+static void print_cfg_lhs (long rule_item, long alt_item);
+static void print_cfg_rhs (long mem_item);
+static void print_lattice_tree (long tree);
+static long lattice_in_tree (long afx);
+static void add_parse_tree_term_lhs (long mem);
+static void add_parse_tree_term (long mem);
+static void add_id_tree_term_lhs (long mem);
+static void add_id_tree_term (long mem);
+static void print_meta_terms (long term_item);
+static void trick ();
+static void printralign(int nc, char *s);
+
+
+static void print_meta (long rule);
+void printtree () 
 {
-  int rule_item;
+  long rule_item;
   if (do_trick)
     trick ();
-  printf ("last_stddef %d\n", laststdpred);
+  printf ("last_stddef %ld\n", laststdpred);
   for (rule_item = root; rule_item != laststdpred; rule_item = BROTHER (rule_item))
     if (!MARKED (rule_item, generated_rule))
       print_rule (rule_item);
-  /* 
-     for (rule_item = lastmetarule; rule_item != nil; rule_item = BROTHER(rule_item)) print_meta(rule_item); for
-     (rule_item = first_lattice; rule_item != nil; rule_item = BROTHER(rule_item)) print_lattice (rule_item); */
+     for (rule_item = lastmetarule; rule_item != nil && rule_item != laststdmetarule; rule_item = BROTHER(rule_item)) print_meta(rule_item); 
+     for (rule_item = first_lattice; rule_item != nil; rule_item = BROTHER(rule_item)) print_lattice (rule_item);
 
+  
 }
 
-print_meta (rule)
+
+static void print_meta (long rule)
 {
-  int term, alt;
+  long alt;
 
   printf ("%s :: ", FREPR (rule));
 
@@ -58,17 +86,17 @@ print_meta (rule)
     printf ("unknown type\n");
   }
   printf (".\n\n");
+  
 }
 
-print_meta_terms (term_item)
-int term_item;
+static void print_meta_terms (long term_item) 
 {
-  int fact_item;
+  long fact_item;
   for (; term_item != nil; term_item = BROTHER (term_item))
   {
     if ((NODENAME (term_item)) == supernt)
     {
-      int lhs = DEF (term_item);
+      long lhs = DEF (term_item);
       printf (" @  %s", FREPR (lhs));
       printaffixtree (AFFIXTREE (term_item));
     }
@@ -91,10 +119,9 @@ int term_item;
   }
 }
 
-print_lattice (rule)
-int rule;
+static void print_lattice (long rule) 
 {
-  int mem;
+  long mem;
   printf ("# Lattice %ld  @%lx\n%s :: {}\n\t", DEF (rule), NODENAME (rule), FREPR (rule));
   for (mem = SON (rule); mem != nil; mem = BROTHER (mem))
   {
@@ -106,12 +133,10 @@ int rule;
   }
 }
 
-
-print_rule (rule_item)
-int rule_item;
+static void print_rule (long rule_item) 
 {
-  int alt_item, mem_item;
-  printf ("  # rule id=%d\n", rule_item);
+  long alt_item;
+  printf ("  # rule id=%ld\n", rule_item);
   if (MARKED (rule_item, is_predicate))
     printf ("  # Predicate\n");
   if (MARKED (rule_item, not_a_predicate))
@@ -132,7 +157,7 @@ int rule_item;
     printf ("  # nonvolatile\n");
   if (SON (rule_item))
   {
-    printf ("  # %d mems\n", DEF (SON (rule_item)));
+    printf ("  # %ld mems\n", DEF (SON (rule_item)));
   }
   for (alt_item = SON (rule_item); alt_item != nil; alt_item = BROTHER (alt_item))
   {
@@ -144,13 +169,12 @@ int rule_item;
       print_rhs (SON (alt_item));
     }
     if (BROTHER (alt_item) != nil)
-      printf (";\n");
+      printf ("\n    ;\n");
   }
-  printf (".\n\n");
+  printf ("\n    .\n");
 }
 
-print_lhs (rule_item, alt_item)
-int rule_item, alt_item;
+static void print_lhs (long rule_item, long alt_item) 
 {
   printf ("%s", FREPR (rule_item));
   printaffixtree (AFFIXDEF (alt_item));
@@ -161,70 +185,85 @@ int rule_item, alt_item;
 
 }
 
-print_rhs (mem_item)
-int mem_item;
+void print_rhs (long mem_item) 
 {
   for (; mem_item != nil; mem_item = BROTHER (mem_item))
   {
+    char lkh='\0';
+    int nc =0;
     if (LKH (mem_item))
-      printf ("?");
+      
+      lkh = '?';
     if (TERMINAL (mem_item))
     {
       if (STRING (mem_item))
-        printf ("\n    \"%s\"", REPR (mem_item));
+        nc += printf ("\n    %c\"%s\"", lkh,REPR (mem_item));
       else
       {
         if (COMPLEMENT (mem_item))
-          printf ("\n    ^");
+          nc += printf ("\n    %c^",lkh);
         else
-          printf ("\n     ");
+          nc += printf ("\n     %c",lkh);
         if (EXCLAMATIONSTARCHOICE (mem_item))
-          printf ("!%s! * ", REPR (mem_item));
+          nc +=printf ("!%s! * ", REPR (mem_item));
         else if (EXCLAMATIONPLUSCHOICE (mem_item))
-          printf ("!%s! + ", REPR (mem_item));
+          nc +=printf ("!%s! + ", REPR (mem_item));
         else
-          printf ("!%s!  ", REPR (mem_item));
-        printaffixtree (AFFIXTREE (mem_item));
+          nc +=printf ("!%s!  ", REPR (mem_item));
+        nc +=printaffixtree (AFFIXTREE (mem_item));
       }
     }
     else
     {
-      int lhs = DEF (mem_item);
+      long lhs = DEF (mem_item);
 
-      printf ("\n    %s", FREPR (lhs));
-      printaffixtree (AFFIXTREE (mem_item));
+      nc += printf ("\n    %s", FREPR (lhs));
+      nc += printaffixtree (AFFIXTREE (mem_item));
     }
     if (BROTHER (mem_item) != nil)
-      printf (",");
+      nc += printf (",");
     if (FLAG_MARKED (mem_item, redirected_input))
-      printf ("\n                                     # redirected");
+      printralign (nc,"# redirected");
     if (!TERMINAL (mem_item))
       if (MARKED (DEF (mem_item), is_predicate))
-        printf ("\n                                     # predicate");
+        printralign (nc,"# predicate");
   }
 }
 
-printaffixtree (tree)
-int tree;
+static void printralign(int nc, char *s)
 {
-  int term_item, fact_item;
-
+    int sz = strlen(s);
+    if (sz + nc > 80)
+    {
+      printf("\n%80s",s);
+    }
+    else 
+    {
+      printf("%*s", 80 -nc, s);
+    }
+}
+     
+static int printaffixtree (long tree) 
+{
+  long term_item, fact_item;
+  int nc = 0;
   if (tree == nil)
-    return;
-  printf ("(");
+    return 0;
+
+  nc +=printf ("(");
   for (; tree != nil; tree = BROTHER (tree))
   {
     if ((NODENAME (tree) == inherited) && (DEF (tree) != -1))
     {
       if (MARKED_ADP (tree, affix_directed_parsing))
-        printf ("#ADP#");
+        nc +=printf ("#ADP#");
       if (MARKED_ADP (tree, no_affix_directed_parsing))
-        printf ("#NO_ADP#");
+        nc +=printf ("#NO_ADP#");
     }
     if (NODENAME (tree) == inherited)
-      printf (">");
+      nc +=printf (">");
     if (LATTICE (tree))
-      printf ("%s", FREPR (SON (tree)));
+      nc +=printf ("%s", FREPR (SON (tree)));
     else
     {
       for (term_item = SON (tree); term_item != nil; term_item = BROTHER (term_item))
@@ -233,35 +272,40 @@ int tree;
           for (fact_item = SON (term_item); fact_item != nil; fact_item = BROTHER (fact_item))
           {
             if (NODENAME (fact_item) == affixnt)
-              printf ("%s", FREPR (fact_item));
+              nc +=printf ("%s", FREPR (fact_item));
+            else if (NODENAME (fact_item) == affixnt && REPR(fact_item) == dont_care)
+               nc +=printf ("_");
             else
-              printf ("\"%s\"", REPR (fact_item));
+              nc +=printf ("\"%s\"", REPR (fact_item));
             if (BROTHER (fact_item) != nil)
-              printf ("^");
+              nc +=printf ("*");
           }
+        else if (NODENAME (term_item) == affixnt && REPR(term_item) == dont_care)
+          nc +=printf ("_");
         else if (NODENAME (term_item) == affixnt)
-          printf ("%s", FREPR (term_item));
+          nc +=printf ("%s",FREPR(term_item));
         else if (NODENAME (term_item) == metaffix)
-          printf ("%s", FREPR (term_item));
+          nc +=printf ("%s", FREPR (term_item));
         else if (NODENAME (term_item) == superaffix)
-          printf ("@%s", FREPR (term_item));
+          nc +=printf ("@%s", FREPR (term_item));
         else
-          printf ("\"%s\"", REPR (term_item));
+          nc +=printf ("\"%s\"", REPR (term_item));
         if (BROTHER (term_item) != nil)
-          printf ("+");
+          nc +=printf ("+");
       }
       if (NODENAME (tree) == derived)
-        printf (">");
+        nc +=printf (">");
     }
     if (BROTHER (tree) != nil)
-      printf (",");
+      nc +=printf (",");
   }
-  printf (")");
+  nc +=printf (")");
+  return nc;
 }
 
-print_cfg_tree ()
+void print_cfg_tree () 
 {
-  int rule_item;
+  long rule_item;
   for (rule_item = root; rule_item != laststdpred; rule_item = BROTHER (rule_item))
     print_cfg_rule (rule_item);
 
@@ -270,10 +314,9 @@ print_cfg_tree ()
 
 }
 
-print_cfg_rule (rule_item)
-int rule_item;
+static void print_cfg_rule (long rule_item) 
 {
-  int alt_item, mem_item;
+  long alt_item;
   for (alt_item = SON (rule_item); alt_item != nil; alt_item = BROTHER (alt_item))
   {
     print_cfg_lhs (rule_item, alt_item);
@@ -289,22 +332,20 @@ int rule_item;
   printf (".\n\n");
 }
 
-print_cfg_lhs (rule_item, alt_item)
-int rule_item, alt_item;
+static void print_cfg_lhs (long rule_item, long alt_item) 
 {
   printf ("%s", FREPR (rule_item));
   print_lattice_tree (AFFIXDEF (alt_item));
   if (MARKED (rule_item, external))
-    printf (": ");
+    printf ("= ");
   else
     printf (": ");
 
 }
 
-print_cfg_rhs (mem_item)
-int mem_item;
+static void print_cfg_rhs (long mem_item) 
 {
-  int skip = 0;
+  long skip = 0;
   for (; mem_item != nil; mem_item = BROTHER (mem_item))
   {
 
@@ -333,7 +374,7 @@ int mem_item;
     }
     else
     {
-      int lhs = DEF (mem_item);
+      long lhs = DEF (mem_item);
       if (lhs == resetinputptr)
       {
         skip = 0;
@@ -362,11 +403,8 @@ int mem_item;
   }
 }
 
-print_lattice_tree (tree)
-int tree;
+static void print_lattice_tree (long tree) 
 {
-  int afx = tree;
-
   if (tree == nil)
     return;
   if (!lattice_in_tree (tree))
@@ -383,8 +421,7 @@ int tree;
   printf (")");
 }
 
-lattice_in_tree (afx)
-int afx;
+static long lattice_in_tree (long afx) 
 {
   for (; afx != nil; afx = BROTHER (afx))
     if (LATTICE (afx))
@@ -392,9 +429,9 @@ int afx;
   return false;
 }
 
-parse_tree ()
+void parse_tree () 
 {
-  register int ag, mem, afx, alt, rule;
+  register long mem, alt, rule;
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
     {
@@ -416,8 +453,7 @@ parse_tree ()
 
 }
 
-add_parse_tree_term_lhs (mem)
-int mem;
+static void add_parse_tree_term_lhs (long mem) 
 {
   if (mem == nil)
     return;
@@ -426,7 +462,7 @@ int mem;
 }
 
 
-add_parse_tree_term (mem)
+static void add_parse_tree_term (long mem)
 {
   if (STRING (mem))
   {
@@ -448,9 +484,9 @@ add_parse_tree_term (mem)
   }
 }
 
-id_tree ()
+void id_tree () 
 {
-  register int ag, mem, afx, alt, rule;
+  register long mem, alt, rule;
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
     {
@@ -468,8 +504,7 @@ id_tree ()
     }
 }
 
-add_id_tree_term_lhs (mem)
-int mem;
+static void add_id_tree_term_lhs (long mem) 
 {
   if (mem == nil)
     return;
@@ -479,7 +514,7 @@ int mem;
 }
 
 
-add_id_tree_term (mem)
+static void add_id_tree_term (long mem)
 {
   if (STRING (mem))
     newnode (affixtm, brother, nil, REPR (mem));
@@ -488,11 +523,12 @@ add_id_tree_term (mem)
   else
     newnode (affixnt, brother, nil, REPR (mem));
 
+  
 }
 
-trick ()
+static void trick () 
 {
-  int rule, x;
+  long rule, x;
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
   {
     x = SON (rule);

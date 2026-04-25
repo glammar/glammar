@@ -9,21 +9,21 @@
 #include "ge1.h"
 #ifdef READINPUT
 extern affix a_generationtime;
-void readinput (sarg_count, sarguments, read_input)
-int sarg_count;
-char **sarguments;
+void readinput (int sarg_count, char **sarguments, int read_input) 
 {
   int arg_count = sarg_count;
   char **arguments = sarguments;
   int input_file_set = false;
   int output_file_set = false;
   char *minput;
+  int mem_pressure=false;
 
   arg_zero = *arguments;
   output_to_stdout = false;
   stack_bottom = &minput;
   afhsize=AFFIX_HEAP_SIZE;
   cssize=CSTORE_INPUT_HEAP_SIZE;
+  
   if ( arg_count > 100 )
   {
     while (arg_count-- >0)
@@ -60,7 +60,7 @@ char **sarguments;
         }
         break;
       case 'a':
-        sscanf (*arguments + 2, "%d", &abq_level);
+        sscanf (*arguments + 2, "%ld", &abq_level);
         break;
       case 'b':
       case 'B':
@@ -68,27 +68,27 @@ char **sarguments;
         break;
       case 'l':
         ll_count=1;
-        sscanf (*arguments + 2, "%d", &ll_count);
+        sscanf (*arguments + 2, "%ld", &ll_count);
 
         ll_mode = true;
         break;
       case 'h':
-        sscanf (*arguments + 2, "%d", &afhsize);
+        sscanf (*arguments + 2, "%ld", &afhsize);
         afhsize = afhsize * 1000000;
         break;
       case 'c':
-        sscanf (*arguments + 2, "%d", &cssize);
+        sscanf (*arguments + 2, "%ld", &cssize);
         cssize = cssize * 1000000;
         break;
       case 'q':
-        sscanf (*arguments + 2, "%d", &q_size);
+        sscanf (*arguments + 2, "%ld", &q_size);
         q_size = q_size * 1000000;
         break;
       case 't':
         if (*(*arguments + 2) == '\0')
           interesting_level_number = 0;
         else
-          sscanf (*arguments + 2, "%d", &interesting_level_number);
+          sscanf (*arguments + 2, "%ld", &interesting_level_number);
         break;
       case 'r':
         report_stacksize = true;
@@ -197,7 +197,15 @@ char **sarguments;
     input_from_stdin = true;
   }
   affix_heap = NULL;
-  affix_heap = (affix *) malloc (sizeof (affix) * afhsize);
+  while (affix_heap == NULL && (afhsize > MIN_AFH_SIZE || mem_pressure == false))
+  {
+    affix_heap = (affix *) malloc (sizeof (affix) * afhsize);
+    if (affix_heap == NULL)
+    {
+     afhsize = afhsize <<1;
+     mem_pressure=true;
+    } 
+  }
   if (affix_heap == NULL)
   {
     fprintf (stderr, "%s: No %ld bytes available for affix storage!\n", arg_zero, afhsize * sizeof (affix));
@@ -205,13 +213,23 @@ char **sarguments;
   }
   afx_top = affix_heap + afhsize - 1;
 
-  minput = (char *) malloc (cssize);
-  input = minput + 4;
-  if (input == NULL)
+  mem_pressure=false;
+  minput= NULL; 
+  while (minput == NULL && ( cssize > MIN_CSI_SIZE ||  mem_pressure == false))
   {
-    fprintf (stderr, "%s: No %d bytes available for character storage!\n", arg_zero, cssize);
+    minput = (char *) malloc (cssize);
+    if (minput == NULL)
+    {
+     cssize= cssize<<1;
+     mem_pressure=true;
+    }
+  }
+  if (minput == NULL)
+  {
+    fprintf (stderr, "%s: No %ld bytes available for character storage!\n", arg_zero, cssize);
     exit (1);
   }
+  input = minput + 4;
 
   cstore_top = input + cssize - 256;
 
@@ -257,7 +275,7 @@ char **sarguments;
           input = minput + 4;
           if (minput == NULL)
           {
-            fprintf (stderr, "%s: No %d bytes available for character storage!\n", arg_zero, cssize);
+            fprintf (stderr, "%s: No %ld bytes available for character storage!\n", arg_zero, cssize);
             exit (1);
           }
           cstore_top = input + cssize - 256;
@@ -288,7 +306,7 @@ char **sarguments;
         input = minput + 4;
         if (minput == NULL)
         {
-          fprintf (stderr, "%s: No %d bytes available for character storage!\n", arg_zero, cssize);
+          fprintf (stderr, "%s: No %ld bytes available for character storage!\n", arg_zero, cssize);
           exit (1);
         }
       }

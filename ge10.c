@@ -14,7 +14,6 @@
 
 #ifdef DUNIXCON
 #define MAX_CON 32
-int talkto ();
 
 FILE *Unix_in[MAX_CON], *Unix_out[MAX_CON];
 
@@ -29,8 +28,7 @@ int connection_count = 0;
 
 
 
-int Dsetupconnectiontounix (B, C)       /* setupconnectiontounix */
-register AFFIX B, C;
+int Dsetupconnectiontounix (AFFIX B, AFFIX C) 
 {
   char *A;
   if (connection_count < MAX_CON - 1)
@@ -40,8 +38,10 @@ register AFFIX B, C;
       return false;
     UnixConnectionSetUp[connection_count] = true;
 
+   if (c + 5 > cstore_top)
+      cstore_overflow ();
     C->t = c;
-    (void) sprintf (c, "%d\0", connection_count++);
+    (void) sprintf (c, "%d", connection_count++);
     c += 4;
 
     return true;
@@ -55,8 +55,7 @@ register AFFIX B, C;
 #include <errno.h>
 
 
-int Dtalktounix (B, A_0, A_1)   /* talktounix */
-register AFFIX B, A_0, A_1;
+int Dtalktounix (AFFIX B, AFFIX A_0, AFFIX A_1) 
 {
   int connection = atoi (B->t);
   FILE *in = Unix_in[connection];
@@ -111,6 +110,8 @@ register AFFIX B, A_0, A_1;
         *rc = getc (in);
         if (*rc != '\r')
           rc++;
+        if (rc > cstore_top)
+            cstore_overflow ();
       }
       while ((*(rc - 1) != '\n') && (!feof (in)));
 
@@ -138,8 +139,7 @@ register AFFIX B, A_0, A_1;
 }
 
 
-int talkto (cmd)
-char *cmd;
+int talkto (char *cmd) 
 {
   int to_child[2], to_parent[2], pid, cnt = 1;
   char *args = cmd;
@@ -173,7 +173,7 @@ char *cmd;
   argv[cnt] = NULL;
 
 
-  if (pid = vfork (), pid == 0)
+  if (pid = fork (), pid == 0)
   {
     int err = 0;
 
@@ -210,9 +210,7 @@ char *cmd;
   return true;
 }
 
-int Dgetfromunix (A_0, A_1)
-register AFFIX A_1;
-register AFFIX A_0;
+int Dgetfromunix (AFFIX A_0, AFFIX A_1) 
 {
   char *A;
   register char *rc;
@@ -226,7 +224,11 @@ register AFFIX A_0;
     A_1->l = nil;
     A_1->r = nil;
     while (!feof (in))
+    {
       *rc++ = getc (in);
+     if (rc > cstore_top)
+         cstore_overflow ();
+    }
     *(rc - 1) = '\0';
     c = rc;
     if (rc > cstore_top)
@@ -238,15 +240,12 @@ register AFFIX A_0;
   return false;
 }
 
-int Dwritefile (A_0, A_1)
-register AFFIX A_1;
-register AFFIX A_0;
+int Dwritefile (AFFIX A_0, AFFIX A_1) 
 {
   char *A;
-  register char *rc;
   FILE *out;
   EVAL (A_0, A);
-  if (out = fopen (A, "w"))
+  if ((out = fopen (A, "w")))
   {
     printa (out, A_1);
     fflush (out);
@@ -256,8 +255,7 @@ register AFFIX A_0;
   return false;
 }
 
-int Dsystem (A_0)
-register AFFIX A_0;
+int Dsystem (AFFIX A_0) 
 {
   char *A;
   EVAL (A_0, A);
@@ -352,9 +350,7 @@ void Uwritefile ()
 #include <stdio.h>
 #include <time.h>
 
-int Dtoutc (A_0, A_1)
-register AFFIX A_1;
-register AFFIX A_0;
+int Dtoutc (AFFIX A_0, AFFIX A_1) 
 {
   char *A;
   register char *rc;
@@ -375,6 +371,8 @@ register AFFIX A_0;
   A_1->t = rc;
   A_1->l = nil;
   A_1->r = nil;
+  if (rc + 50 > cstore_top)
+    cstore_overflow ();
   rc += sprintf (rc, "%02d/%02d/%04d %02d:%02d:%02d.%03d",
                  tmt->tm_mon + 1, tmt->tm_mday, tmt->tm_year + 1900, tmt->tm_hour, tmt->tm_min, tmt->tm_sec, msec);
   c = rc + 1;

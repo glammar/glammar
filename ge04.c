@@ -79,8 +79,7 @@ done:
 #endif
 
 #ifdef DADDTO
-int Daddto (A, B, C)
-register AFFIX A, B, C;
+int Daddto (AFFIX A, AFFIX B, AFFIX C) 
 {
   struct eaglist *item;
   item = (struct eaglist *) malloc (sizeof (struct eaglist));
@@ -113,6 +112,10 @@ register AFFIX A, B, C;
       left = afxcmp (xs, ys);
       if (left == 0)
       {
+        item->key = link->key;
+        item->value = link->value;
+        link->value = C;
+        link->key = B;
         item->next = link->next;
         link->next = (struct eaglist *) item;
         return true;
@@ -136,8 +139,7 @@ register AFFIX A, B, C;
 #endif
 
 #ifdef DVALUEOF
-int Dvalueof (A, B, C)
-register AFFIX A, B, C;
+int Dvalueof (AFFIX A, AFFIX B, AFFIX C) 
 {
   register struct eaglist *link = root;
   register char *xs = c, *ys;
@@ -202,8 +204,7 @@ register AFFIX A, B, C;
 #endif
 
 #ifdef DINCLUDES
-int Dincludes (A, B)
-register AFFIX A, B;
+int Dincludes (AFFIX A, AFFIX B) 
 {
   register struct eaglist *link = root;
   register char *xs = c, *ys, *key, *list;
@@ -264,8 +265,7 @@ register AFFIX A, B;
 #endif
 
 #ifdef DEXCLUDES
-int Dexcludes (A, B)
-register AFFIX A, B;
+int Dexcludes (AFFIX A, AFFIX B) 
 {
   return !Dincludes (A, B);
 }
@@ -273,8 +273,7 @@ register AFFIX A, B;
 
 #ifdef DLOOKUP
 extern AFFIX fist_meta, last_meta;
-int Dlookup (A, B, C)
-register AFFIX A, B, C;
+int Dlookup (AFFIX A, AFFIX B, AFFIX C) 
 {
   register struct eaglist *link = root;
   register char *xs = c, *ys, *key, *list;
@@ -343,8 +342,7 @@ register AFFIX A, B, C;
 #endif
 
 #ifdef DCONTENTSOF
-int Dcontentsof (A, B, C, D)
-register AFFIX A, B, C, D;
+int Dcontentsof (AFFIX A, AFFIX B, AFFIX C, AFFIX D) 
 {
   register struct eaglist *link = root;
   register char *xs = c, *ys, *list;
@@ -407,8 +405,7 @@ register AFFIX A, B, C, D;
 #endif
 
 #ifdef DSIZE
-int Dsize (A, B)
-register AFFIX A, B;
+int Dsize (AFFIX A, AFFIX B) 
 {
   register struct eaglist *link = root;
   register char *xs = c, *list;
@@ -445,6 +442,8 @@ register AFFIX A, B;
   }
   (void) sprintf (c, "%d", count);
   c += 10;
+  if (c > cstore_top)
+    cstore_overflow ();
   return true;
 }
 #endif

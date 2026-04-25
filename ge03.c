@@ -77,6 +77,9 @@ void Ugetlinefile ()
   while (rip < ip)
     if (*rip++ == '\n')
       line += 1;
+  while (rip > ip)
+    if (*rip-- == '\n')
+      line -= 1;
   (void) sprintf (line_nm, "%d", line);
   q -= 1;
   (*(*(q + 1)).q) ();
@@ -89,8 +92,7 @@ void Ugetlinefile ()
 #endif
 
 #ifdef DSETLINEFILE
-int Dsetlinefile (L, F)
-register AFFIX L, F;
+int Dsetlinefile (AFFIX L, AFFIX F) 
 {
   register char *ll, *ff;
   if ((F->r == nil) && (F->l == nil))
@@ -118,8 +120,7 @@ register AFFIX L, F;
 #endif
 
 #ifdef DGETLINEFILE
-int Dgetlinefile (L, F)
-register AFFIX L, F;
+int Dgetlinefile (AFFIX L, AFFIX F) 
 {
   register char *rip = set_line_pos;
   int line = set_line_num;
@@ -132,15 +133,19 @@ register AFFIX L, F;
   while (rip < ip)
     if (*rip++ == '\n')
       line += 1;
+  while (rip > ip)
+    if (*rip-- == '\n')
+      line -= 1;
   (void) sprintf (c, "%d", line);
   c += 8;
+  if (c > cstore_top)
+    cstore_overflow ();
   return true;
 }
 #endif
 
 #ifdef DCHARNUM
-int Dcharnum (D_0)
-register AFFIX D_0;
+int Dcharnum (AFFIX D_0) 
 {                               /* charnum */
   int i = 0;
   D_0->t = c;
@@ -158,13 +163,14 @@ register AFFIX D_0;
   }
   (void) sprintf (c, "%d", i);
   c += 8;
+  if (c > cstore_top)
+    cstore_overflow ();
   return true;
 }
 #endif
 
 #ifdef SETTABSTOP
-int Dsettabstop (F)
-register AFFIX F;
+int Dsettabstop (AFFIX F) 
 {
   register char *ff;
   if ((F->r == nil) && (F->l == nil))
@@ -176,13 +182,14 @@ register AFFIX F;
     *c++ = '\0';
   }
   tabstop = atoi (ff);
+  return true;
 }
 #endif
 
 #ifdef DSOMENAME
+#include <time.h>
 int some_count = 0;
-int Dsomename (A_0)             /* newname */
-register AFFIX A_0;
+int Dsomename (AFFIX A_0) 
 {
   long lt = (long) c;
   int lta = (int) 'A';
@@ -191,8 +198,10 @@ register AFFIX A_0;
   A_0->r = nil;
   if (!some_count)
     some_count = clock ();
-  (void) sprintf (c, "%c%c%X\0", (int) (lta + ((lt >> 3) & 15)), (int) (lta + ((lt >> 6) & 15)), some_count++);
+  (void) sprintf (c, "%c%c%X", (int) (lta + ((lt >> 3) & 15)), (int) (lta + ((lt >> 6) & 15)), some_count++);
   c += 12;
+  if (c > cstore_top)
+    cstore_overflow ();
   return true;
 }
 #endif

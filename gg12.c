@@ -34,13 +34,28 @@
 
 #include "gg1.h"
 #include "gg2.h"
-static int last_alt = true;
-static int last_empty_alt = nil, empty_rule = nil;
-static int first_empty_rule = nil, last_empty_rule = 0;
+static long last_empty_alt = nil, empty_rule = nil;
+static long first_empty_rule = nil, last_empty_rule = 0;
 
-memopt ()
+
+/* exports
+void memopt ();
+*/
+
+static void make_empty_alts_empty_only ();
+static void add_final_empty_alt (long alt);
+static void new_display (long afx, long count);
+static void add_empty_only_alt_to_shadow (long rule,long alt);
+static void shadow_empty_mems (long mem);
+static long no_derived_afx (long afx);
+static char *new_repr (char *head);
+static void link_empty_rules ();
+static void link_empty_members (long alt, long rule);
+static char *short_repr (long count);
+
+void memopt () 
 {
-  int r;
+  long r;
   make_empty_alts_empty_only ();
   if (first_empty_rule != nil)
   {
@@ -53,13 +68,11 @@ memopt ()
     fprintf (stderr, "No empty alts?\n");
 }
 
-char *short_repr ();
-char *new_repr ();
 char *ipterm = "ip_";
 
-make_empty_alts_empty_only ()
+static void make_empty_alts_empty_only () 
 {
-  int alt, rule, mem, last_alt;
+  long alt, rule, mem, last_alt;
   for (rule = root; rule != init_one_star; rule = BROTHER (rule))
     if (MARKED (rule, emptyrule))
     {
@@ -111,10 +124,9 @@ make_empty_alts_empty_only ()
     }
 }
 
-add_final_empty_alt (alt)
-int alt;
+static void add_final_empty_alt (long alt) 
 {
-  int d1, d2;
+  long d1, d2;
   brother = nil;
   new_display (AFFIXDEF (alt), 0);
   d1 = brother;
@@ -127,10 +139,9 @@ int alt;
   BROTHER (alt) = brother;
 }
 
-new_display (afx, count)
-int afx, count;
+static void new_display (long afx, long count) 
 {
-  int b;
+  long b;
   if (afx == nil)
     return;
   new_display (BROTHER (afx), count + 1);
@@ -139,10 +150,8 @@ int afx, count;
   newnode (NODENAME (afx), b, brother, "nil");
 }
 
-add_empty_only_alt_to_shadow (rule, alt)
-int alt, rule;
+static void add_empty_only_alt_to_shadow (long rule,long alt) 
 {
-  int b;
   brother = nil;
 
   shadow_empty_mems (SON (alt));
@@ -176,8 +185,7 @@ int alt, rule;
   }
 }
 
-shadow_empty_mems (mem)
-int mem;
+static void shadow_empty_mems (long mem) 
 {
   if (mem == nil)
     return;
@@ -190,8 +198,7 @@ int mem;
     newdefnode (NODENAME (mem), brother, SON (mem), DEF (mem), REPR (mem));
 }
 
-no_derived_afx (afx)
-int afx;
+static long no_derived_afx (long afx) 
 {
   for (; afx != nil; afx = BROTHER (afx))
     if (DERIVED (afx))
@@ -199,10 +206,9 @@ int afx;
   return true;
 }
 
-char *new_repr (head)
-char *head;
+static char *new_repr (char *head) 
 {
-  int curchar;
+  long curchar;
   hashindex = 0;
   curchar = 0;
   do
@@ -220,21 +226,20 @@ char *head;
   return string;
 }
 
-link_empty_rules ()
+static void link_empty_rules () 
 {
-  register int rule, alt, mem, afx;
+  register long rule;
   for (rule = first_empty_rule; rule != nil; rule = BROTHER (rule))
   {
-    int alt = SON (rule);
+    long alt = SON (rule);
     for (; alt != nil; alt = BROTHER (alt))
       link_empty_members (alt, rule);
   }
 }
 
-link_empty_members (alt, rule)
-int alt, rule;
+static void link_empty_members (long alt, long rule) 
 {
-  register int member, rrule;
+  register long member, rrule;
   for (member = SON (alt); member != nil; member = BROTHER (member))
   {
     if (DEF (member) != -1)
@@ -257,10 +262,9 @@ int alt, rule;
   }
 }
 
-char *short_repr (count)
-int count;
+static char *short_repr (long count) 
 {
-  int curchar;
+  long curchar;
   char c1 = 'A' + count % 26;
   hashindex = 0;
   curchar = 0;

@@ -98,8 +98,9 @@ void Unotequal ()
   }
   if (afxcmp (xs, ys) == 0)
     goto done;
-go:
+
   CONTINUE;
+
 done:
   RESTORE (A, x);
   RESTORE (B, y);

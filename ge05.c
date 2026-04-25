@@ -13,8 +13,7 @@ extern char **arg_v;
 #ifdef GETNEXTOPTION
 
 /*  getnextoption   */
-int Dgetnextoption (A_0)
-register AFFIX A_0;
+int Dgetnextoption (AFFIX A_0) 
 {
   if (argc-- > 0)
   {
@@ -48,8 +47,7 @@ void Ugetnextoption ()
 #ifdef LAYOUT
 
 /*  layout   */
-int Dlayout (A_0)
-register AFFIX A_0;
+int Dlayout (AFFIX A_0) 
 {
   register char *rip = ip, *rc = c;
   if (A_0 == AFX_DONT_CARE)
@@ -63,7 +61,11 @@ register AFFIX A_0;
   A_0->r = nil;
   A_0->l = nil;
   while (isspace (*rip))
+  {
     *rc++ = *rip++;
+    if (rc > cstore_top)
+    cstore_overflow ();
+  }
   *rc++ = '\0';
   ip = rip;
   c = rc;
@@ -76,8 +78,7 @@ register AFFIX A_0;
 #ifdef WHITESPACE
 
 /*  whitespace   */
-int Dwhitespace (A_0)
-register AFFIX A_0;
+int Dwhitespace (AFFIX A_0) 
 {
   return Dlayout (A_0);
 }
@@ -87,24 +88,15 @@ register AFFIX A_0;
 GLAMMAR_Q1 (Dwhitespace, Uwhitespace)
 #endif
 #ifdef ULAYOUT
-void Ulayout ()
-{                               /* quote */
-  if (Dlayout ())
-  {
-    CONTINUE;
-  }
-  (++q)->q = Ulayout;
-}
+GLAMMAR_Q1 (Dlayout, Ulayout)
 #endif
 
 #ifdef LENGTH
 
 /*  length   */
-int Dlength (A, B)
-register AFFIX A, B;
+int Dlength (AFFIX A, AFFIX B) 
 {
   register char *rc = c;
-  int len;
   if (((A->r) == nil) && ((A->l) == nil))
     rc = (A->t);
   else
@@ -118,6 +110,8 @@ register AFFIX A, B;
   sprintf (c, "%d", (int) strlen (rc));
   c += strlen(c);
   *c++ = '\0';
+  if (rc > cstore_top)
+    cstore_overflow ();
   return true;
 }
 #endif
@@ -165,7 +159,7 @@ Returns:      a pointer to the zero-terminated base 64 string, which
 
 static char *enc64table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-void  base64encode(char *clear, int len, char *code)
+void  base64encode(char *clear, int len, char *code )
 {
 char *p = code;
 
@@ -219,7 +213,7 @@ static char dec64table[] = {
    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,255,255,255,255,255  /* 112-127*/
 };
 
-static int base64decode(char *code, char *result)
+static int base64decode(char *code, char *result) 
 {
 register int x, y;
 
@@ -259,29 +253,22 @@ while ((x = (*code++)) != 0)
 return result - ptr;
 }
 
-int Dbase64encode (A)
-register AFFIX A;
+int Dbase64encode (AFFIX A) 
 {
-  register char *rc = c;
   A->t = c;
   A->r = nil;
   A->l = nil;
-   if (!encodestr)
-   {
-     *c++='\0';
-     return true;
-   }
    if (c + enx*2  > cstore_top)
          cstore_overflow ();
 
   base64encode(encodestr,enx, c);
   c+= enx*2;
   *c++ = '\0';
+  *c++ = '\0';
   enx=0;
   return true;
 }
-int Dbase64addencode (A)
-register AFFIX A;
+int Dbase64addencode (AFFIX A) 
 {
   register char *rc = c;
   int len;
@@ -306,9 +293,7 @@ register AFFIX A;
   return true;
 }
 
-static int base64intencode (A,B)
-register char * A;
-register char * B;
+static int base64intencode (char * A, char * B) 
 {
   register char *rc = A;
   long long v8 = 0;
@@ -358,9 +343,7 @@ register char * B;
   return true;
 }
 
-int Dbase64intencode (A,B)
-register AFFIX A;
-register AFFIX B;
+int Dbase64intencode (AFFIX A, AFFIX B) 
 {
   register char *rc = c;
   char *a, *b;
@@ -387,11 +370,9 @@ register AFFIX B;
   return true;
 }
 
-int Dbase64decode (A, B)
-register AFFIX A, B;
+int Dbase64decode (AFFIX A, AFFIX B) 
 {
   register char *rc = c;
-  int len;
   if (((A->r) == nil) && ((A->l) == nil))
     rc = (A->t);
   else
@@ -405,7 +386,9 @@ register AFFIX A, B;
    if (c + strlen(rc)  > cstore_top)
          cstore_overflow ();
 
-   base64decode(rc, c);
+   c += base64decode(rc, c);
+   *c++ = '\0';
+    
   return true;
 }
 GLAMMAR_Q1 (Dbase64encode, Ubase64encode)

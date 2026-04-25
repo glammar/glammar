@@ -1,34 +1,51 @@
 
 /*
 
-    This file is a part of the GLAMMAR source distribution 
-    and therefore subjected to the copy notice below. 
-    
-    Copyright (C) 1989,2012  Eric Voss, eric337@yahoo.com 
+   This file is a part of the GLAMMAR source distribution 
+   and therefore subjected to the copy notice below. 
 
-/* hash names */
+   Copyright (C) 1989,2012  Eric Voss, eric337@yahoo.com 
+
+*/
+/* file: hash names */
 #include "gg1.h"
 #include "gg2.h"
-int nr_names = 0;
+long nr_names = 0;
 static char full_name[512];
-initnametable ()
+
+
+/* exports
+   void initnametable ();
+   long mystrcmp ( char *s1, char *s2);
+   long name_display_mix ();
+   void alloc_chartable ();
+   char *full_repr (char *s);
+   void dump_hash ();
+
+*/
+
+static long mdisplay ();
+static long get_hash (char *c);
+
+void initnametable () 
 {
-  register int count;
+  register long count;
   count = 0;
   while (count < maxnt)
     nametable[count++] = NULL;
 }
 
-static int distinct_clashes = 0;
-addname ()
+static long distinct_clashes = 0;
+
+long addname () 
 {
-  int count, limit;
+  long count, limit;
   count = hashindex;
   limit = (hashindex - 1) & (maxnt - 1);
   if (count > maxnt)
   {
-    fprintf (stderr, "compiler error in `addname': index too high (max = %d)\n", maxnt);
-    fprintf (stderr, "   count = %d, limit = %d, line = %d\n ", count, limit, line);
+    fprintf (stderr, "compiler error in `addname': index too high (max = %ld)\n", maxnt);
+    fprintf (stderr, "   count = %ld, limit = %ld, line = %ld\n ", count, limit, line);
     exit (3);
   }
   while (nametable[count] != NULL && count != limit)
@@ -37,7 +54,7 @@ addname ()
     {
       string = nametable[count];
       charindex = prevcharindex;
-      return;
+      return 0;
     }
     name_clashes += 1;
     if (++count == maxnt)
@@ -46,7 +63,7 @@ addname ()
   if (count == limit)
   {
     fprintf (stderr, "compiler error: nametable overflow\n");
-    fprintf (stderr, " -- index = %d, name = `%s', line = %d\n", count, &(chartable[prevcharindex]), line);
+    fprintf (stderr, " -- index = %ld, name = `%s', line = %ld\n", count, &(chartable[prevcharindex]), line);
     exit (18);
   }
   if (count != hashindex)
@@ -61,7 +78,7 @@ addname ()
     for (c = full_name; *c; c++)
     {
       if (*c == ' ' && pc == ' ')
-        continue;
+	continue;
       pc = *c;
       chartable[charindex++] = pc;
     }
@@ -81,11 +98,10 @@ addname ()
     fprintf (stderr, "new name (%s,%s)\n", string, full_name);
   if (charindex >= maxchars - 256)
     alloc_chartable ();
-  return;
+  return 0;
 }
 
-mystrcmp (s1, s2)
-register char *s1, *s2;
+long mystrcmp ( char *s1, char *s2)
 {
   while (*s1 == *s2++)
   {
@@ -103,10 +119,10 @@ register char *s1, *s2;
 #define HASHC1(c)      hashidx = (hashidx << 5 +hashidx) + (c << (c&7))
 #define TESTletter  (isalpha (thischar) )
 #define TESTmorename  (isalnum (thischar) )
-name ()
+
+long name () 
 {
-  int curchar;
-  int hashidx = 5381;
+  long hashidx = 5381;
   char *fc = full_name;
   if (!TESTletter)
     return false;
@@ -144,9 +160,9 @@ name ()
 #define TESTletter_open   (ALFA || OPEN || SEQ)
 #define TESTmore_name_display   (ALNUM || OPEN || SEQ || USC)
 
-name_display_mix ()
+long name_display_mix () 
 {
-  int nmix = 0, hashidx = 5381;
+  long nmix = 0, hashidx = 5381;
   char nm[512];
   char fnm[512];
   char *fc = fnm;
@@ -159,7 +175,7 @@ name_display_mix ()
     if (mdisplay ())
     {
       if (fc != fnm && TESTmore_name_display)
-        *fc++ = ' ';
+	*fc++ = ' ';
     }
     else if (thischar == '\'')
     {
@@ -200,7 +216,7 @@ name_display_mix ()
       nm[nmix++] = thischar;
       HASHTHIS;
       if (getnextchar () && TESTmore_name_display)
-        *fc++ = ' ';
+	*fc++ = ' ';
     }
   hashidx += hashidx >> 12;
   hashidx += hashidx >> 24;
@@ -220,18 +236,18 @@ name_display_mix ()
 }
 
 
-mdisplay ()
+static long mdisplay () 
 {
   if (open_symbol ())
   {
-    int first = lastaffixtree;
+    long first = lastaffixtree;
     brother = nil;
     affixes ();
     if (first == nil)
       lastaffixtree = brother;
     else
     {
-      int afx;
+      long afx;
       for (afx = first; BROTHER (afx) != nil; afx = BROTHER (afx));
       BROTHER (afx) = brother;
       lastaffixtree = first;
@@ -250,18 +266,7 @@ mdisplay ()
   return false;
 }
 
-/* name_display()
-{
-   if (name() ) {
-     ntname = string;
-     displayoption();
-     return true;
-   }
-   return false;
-}
-*/
-
-alloc_chartable ()
+void alloc_chartable () 
 {
   chartable = (char *) malloc ((maxchars + 132));
   charindex = 0;
@@ -269,18 +274,22 @@ alloc_chartable ()
   prevcharindex = 0;
   if (chartable == NULL)
   {
-    fprintf (stderr, "glammar fatal msg: no %d bytes available for symbol table\n", maxchars);
+    fprintf (stderr, "glammar fatal msg: no %ld bytes available for symbol table\n", maxchars);
     exit (1);
   }
   if (verbose_flag)
-    fprintf (stderr, "alloc sym: %d bytes available for sym space\n", maxchars);
+    fprintf (stderr, "alloc sym: %ld bytes available for sym space\n", maxchars);
 }
 
 char *full_repr (char *s)
 {
+  char *sv = s;
   if ((s > chartable) && (s < chartable + maxchars))
   {
-    s += strlen (s);            /* full name follows name in symbol table */
+    /* full name follows name in symbol table */
+    for (;*s && *s != '_'; s++)
+      ;
+    if (*s == '_') return sv;
     while (*s == '\0')
       s++;
   }
@@ -289,23 +298,20 @@ char *full_repr (char *s)
   return s;
 }
 
-dump_hash ()
+void dump_hash () 
 {
-  int c;
-  fprintf (stderr, "%d hash mapping imperfections\n", distinct_clashes);
+  long c;
+  fprintf (stderr, "%ld hash mapping imperfections\n", distinct_clashes);
   for (c = 0; c < maxnt; c++)
     if (nametable[c])
-      fprintf (stderr, "%05d %05d %s\n", get_hash (nametable[c]), c, nametable[c]);
-
-    else
-      fprintf (stderr, "--\n");
+      fprintf (stderr, "%05ld %05ld %s\n", get_hash (nametable[c]), c, nametable[c]);
 }
 
-int get_hash (char *c)
+static long get_hash (char *c)
 {
   char t;
-  int hashidx = 5381;
-  while (t = *c++)
+  long hashidx = 5381;
+  while ( (t = *c++) )
     HASHC (t);
 
   hashidx += hashidx >> 12;

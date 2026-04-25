@@ -8,10 +8,8 @@
 */
 #include "ge1.h"
 #ifdef DTYPEIN
-int Dtypein (A_0)               /* Dumpaffix */
-register AFFIX A_0;
+int Dtypein (AFFIX A_0) 
 {
-  AFFIX _affix = A_0;
   char *rc = c;
   if (feof (stdin))
     return false;
@@ -25,10 +23,10 @@ register AFFIX A_0;
     {
       *(rc - 1) = '\0';
       c = rc;
-      if (rc > cstore_top)
-        cstore_overflow ();
       return true;
     }
+    if (rc > cstore_top)
+        cstore_overflow ();
   }
   *rc++ = '\0';
   c = rc;
@@ -39,20 +37,18 @@ register AFFIX A_0;
 #endif
 
 #ifdef DTYPEOUT
-int Dtypeout (I_0)              /* dumpaffix */
-register AFFIX I_0;
+int Dtypeout (AFFIX I_0) 
 {
   AFFIX _affix = I_0;
   if ((interesting_level_number > level) && (interesting_level_number != -1))
-    fprintf (stderr, "%d ", level);
+    fprintf (stderr, "%ld ", level);
   (void) printa (stderr, _affix);
   return true;
 }
 #endif
 
 #ifdef DREALTOINT
-int Drealtoint (I_0, D_1)       /* real to int */
-register AFFIX I_0, D_1;
+int Drealtoint (AFFIX I_0, AFFIX D_1) 
 {
   float real = 0;
   char *expr = c;
@@ -67,15 +63,16 @@ register AFFIX I_0, D_1;
   D_1->l = nil;
   D_1->r = nil;
   sscanf (expr, "%f", &real);
-  (void) sprintf (c, "%d\0", (int) real);
+  (void) sprintf (c, "%d", (int) real);
   c += 20;
+  if (c > cstore_top)
+    cstore_overflow ();
   return true;
 }
 #endif
 
 #ifdef DDECIMALTOUN
-int Ddecimaltounary (I_0, D_1)  /* Decimal to unary */
-register AFFIX I_0, D_1;
+int Ddecimaltounary (AFFIX I_0, AFFIX D_1) 
 {
   long dec;
   char *rc = c, *sv = c;
@@ -89,25 +86,34 @@ register AFFIX I_0, D_1;
   }
   dec = strtol (rc, &eptr, 10);
 
-  if (eptr == rc || *eptr != '\0')
+  if (eptr == rc || *eptr != '\0' ||  dec > 10000)
     return false;
   rc = sv;
   D_1->t = rc;
   D_1->l = nil;
   D_1->r = nil;
   for (; dec-- > 0;)
+  {
+     if (rc > cstore_top)
+     {
+       c = rc;
+       cstore_overflow ();
+     }
     *rc++ = '1';
+  }
   *rc++ = '\0';
   c = rc;
   if (rc > cstore_top)
-    cstore_overflow ();
+  {
+       c = rc;
+       cstore_overflow ();
+  }
   return true;
 }
 
 #endif
 #ifdef DKEYWORD
-int Dkeyword (I)
-register AFFIX I;
+int Dkeyword (AFFIX I) 
 {
   register char *term, *rip = ip;
   term = I->t;
@@ -141,8 +147,7 @@ register AFFIX I;
 #endif
 
 #ifdef DUPPERCASE
-int Duppercase (I, D)           /* upper case */
-register AFFIX I, D;
+int Duppercase (AFFIX I, AFFIX D) 
 {
   register char *rs, *rd;
   char *dest;
@@ -173,8 +178,7 @@ register AFFIX I, D;
 #endif
 
 #ifdef DREVERSE
-int Dreverse (I, D)             /* reverse */
-register AFFIX I, D;
+int Dreverse (AFFIX I, AFFIX D) 
 {
   register char *rs, *rd;
   rs = c;
@@ -195,8 +199,7 @@ register AFFIX I, D;
 #endif
 
 #ifdef DLOWERCASE
-int Dlowercase (I, D)           /* upper case */
-register AFFIX I, D;
+int Dlowercase (AFFIX I, AFFIX D) 
 {
   register char *rs, *rd;
   char *dest;

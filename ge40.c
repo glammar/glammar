@@ -22,14 +22,16 @@ int64_t * dectoint ();
 #define MAX_SHORT 32767
 #define MIN_SHORT -32768
 
-typedef struct affix_struct {
+typedef struct affix_struct ()
+{
   char           *t;
   struct affix_struct  *l, *r;
 } affix,*AFFIX;
 
 extern AFFIX first_meta,last_meta; 
 
-typedef union {
+typedef union ()
+{
   void             (*q) ();
   int           *i;
   char           *s;
@@ -97,10 +99,7 @@ extern affix *af;
 int64_t  szero = 0;
 
 /*  intplusintisint   */
-int Dintplusintisint(A,B,C)
-register AFFIX A;
-register AFFIX B;
-register AFFIX C;
+int Dintplusintisint(AFFIX A, AFFIX B, AFFIX C) 
 {
   char           *xs = c, *csave = c;
   int r=0;
@@ -130,10 +129,7 @@ register AFFIX C;
 }
 
 /*  intsubintisint   */
-int Dintsubintisint(A,B,C)
-register AFFIX A;
-register AFFIX B;
-register AFFIX C;
+int Dintsubintisint(AFFIX A, AFFIX B, AFFIX C) 
 {
   char           *xs = c, *csave = c;
   int64_t   m1,m2,m3;
@@ -168,10 +164,7 @@ register AFFIX C;
 
 
 /*  inttimesintisint   */
-int Dinttimesintisint(A,B,C)
-register AFFIX A;
-register AFFIX B;
-register AFFIX C;
+int Dinttimesintisint(AFFIX A, AFFIX B, AFFIX C) 
 {
   char           *xs = c, *csave = c;
   int r=0;
@@ -204,11 +197,7 @@ register AFFIX C;
 
 
 /*  intdividedbyintisintwithremainderint   */
-int Dintdividedbyintisintwithremainderint(A,B,C,D)
-register AFFIX A;
-register AFFIX B;
-register AFFIX C;
-register AFFIX D;
+int Dintdividedbyintisintwithremainderint(AFFIX A, AFFIX B, AFFIX C, AFFIX D) 
 {
   char           *xs = c, *csave = c;
   int64_t   *m1,*m2,*m3,*m4;
@@ -245,10 +234,7 @@ register AFFIX D;
 
 
 /*  intisint   */
-int Dintisint(A,B,C)
-register AFFIX A;
-register AFFIX B;
-register AFFIX C;
+int Dintisint(AFFIX A, AFFIX B, AFFIX C) 
 {
   char           *xs = c, *csave = c;
   int64_t   *m1,*m2;
@@ -284,11 +270,7 @@ register AFFIX C;
 }
 
 /*  intraisedbyintmodulointisint   */
-int Dintraisedbyintmodulointisint(A,B,C,D)
-register AFFIX A;
-register AFFIX B;
-register AFFIX C;
-register AFFIX D;
+int Dintraisedbyintmodulointisint(AFFIX A, AFFIX B, AFFIX C, AFFIX D) 
 {
   char           *xs = c, *csave = c;
   int64_t   *m1,*m2,*m3,*m4;
@@ -327,10 +309,7 @@ register AFFIX D;
 
 
 /*  intisthegcdofintandint   */
-int Dintisthegcdofintandint(C,A,B)
-register AFFIX C;
-register AFFIX A;
-register AFFIX B;
+int Dintisthegcdofintandint(AFFIX C, AFFIX A, AFFIX B) 
 {
   char           *xs = c, *csave = c;
   int64_t   *m1,*m2,*m3;
@@ -362,10 +341,7 @@ register AFFIX B;
 }
 
 /*  intisthesquarerootofintwithremainderint   */
-int Dintisthesquarerootofintwithremainderint(C,A,B)
-register AFFIX C;
-register AFFIX A;
-register AFFIX B;
+int Dintisthesquarerootofintwithremainderint(AFFIX C, AFFIX A, AFFIX B) 
 {
  
   char           *xs = c, *csave = c;
@@ -393,8 +369,7 @@ register AFFIX B;
 
 }
 
-int Ddecisint(A,B)
-register AFFIX A, B;
+int Ddecisint(AFFIX A, AFFIX B) 
 {
    int64_t *M ;
    register char *xs =c, *csave =c;
@@ -412,8 +387,7 @@ register AFFIX A, B;
    return true;
 }
 
-int Dinitmint_(A,B)
-register AFFIX A, B;
+int Dinitmint_(AFFIX A, AFFIX B) 
 {
    int64_t *M ;
    register char *xs =c, *csave =c;
@@ -431,8 +405,7 @@ register AFFIX A, B;
    return true;
 }
 /*  intisdec   */
-int Dintisdec(A,B)
-register AFFIX A, B;
+int Dintisdec(AFFIX A, AFFIX B) 
 {
    register char           *xs = c, *rc =c;
    int64_t   *m1;
@@ -459,8 +432,7 @@ register AFFIX A, B;
 
 
 #define Base 10000
-inttodec(A)
-int64_t *A;
+void inttodec(int64_t *A) 
 {
    int len = A -> len;
    short *val = A -> val;
@@ -506,8 +478,7 @@ static int64_t * Mint_10, *R;
 
 int first_time_dec_to_mint =1;
 
-int64_t * dectoint (str)
-register  char *str;
+int64_t * dectoint (char *str) 
 {
   int64_t * bignum;
   int negate;
@@ -537,8 +508,7 @@ register  char *str;
 
 
 /*  freeint   */
-int Dfreeint(A)
-register AFFIX A;
+int Dfreeint(AFFIX A) 
 {
   register char *rc = c,  *xs = rc;
   int64_t   *m1;
@@ -559,8 +529,7 @@ register AFFIX A;
 
 
 /*  Decrementint   */
-int Ddecrementsmallint(A)
-register AFFIX A;
+int Ddecrementsmallint(AFFIX A) 
 {
   register char *rc = c,  *xs = rc;
   int64_t   *m1;
@@ -591,8 +560,7 @@ register AFFIX A;
 
    
 /*  incrementint   */
-int Dincrementsmallint(A)
-register AFFIX A;
+int Dincrementsmallint(AFFIX A) 
 {
   register char *rc = c,  *xs = rc;
   int64_t   *m1;
@@ -629,9 +597,7 @@ register AFFIX A;
    
 
 /*  smalldecisint   */
-int Dsmalldecisint(A,B)
-register AFFIX A;
-register AFFIX B;
+int Dsmalldecisint(AFFIX A, AFFIX B) 
 {
   register char *rc = c,  *xs = rc;
   int64_t   *m1;
@@ -658,8 +624,7 @@ register AFFIX B;
 }
 
 /*  intisnegative   */
-int Dintisnegative(A)
-register AFFIX A;
+int Dintisnegative(AFFIX A) 
 {
   register char *rc = c,  *xs = rc;
   int64_t   *m1;
@@ -676,8 +641,7 @@ register AFFIX A;
 
 
 /*  negateint   */
-int Dnegateint(A)
-register AFFIX A;
+int Dnegateint(AFFIX A) 
 {
   register char *rc = c,  *xs = rc;
   int64_t   *m1;
@@ -696,8 +660,7 @@ register AFFIX A;
 
 
 /*  intispositive   */
-int Dintispositive(A)
-register AFFIX A;
+int Dintispositive(AFFIX A) 
 {
   register char *rc = c,  *xs = rc;
   int64_t   m1;
@@ -715,8 +678,7 @@ register AFFIX A;
 
 
 /*  intiszero   */
-int Dintiszero(A)
-register AFFIX A;
+int Dintiszero(AFFIX A) 
 {
   register char *rc = c,  *xs = rc;
   int64_t   m1;
@@ -733,7 +695,8 @@ register AFFIX A;
 #endif
 
 #ifdef UMP
-void Uintplusintisint () {
+void Uintplusintisint ()
+{
    register cont *rq = q;
 register AFFIX C = (rq+0)-> a;
 register AFFIX B = (rq+-1)-> a;
@@ -751,7 +714,8 @@ register AFFIX A = (rq+-2)-> a;
    q = rq+1;
 }
 
-void Uintsubintisint () {
+void Uintsubintisint ()
+{
    register cont *rq = q;
 register AFFIX C = (rq+0)-> a;
 register AFFIX B = (rq+-1)-> a;
@@ -769,7 +733,8 @@ register AFFIX A = (rq+-2)-> a;
    q = rq+1;
 }
 
-void Uinttimesintisint () {
+void Uinttimesintisint ()
+{
    register cont *rq = q;
 register AFFIX C = (rq+0)-> a;
 register AFFIX B = (rq+-1)-> a;
@@ -787,7 +752,8 @@ register AFFIX A = (rq+-2)-> a;
    q = rq+1;
 }
 
-void Uintdividedbyintisintwithremainderint () {
+void Uintdividedbyintisintwithremainderint ()
+{
    register cont *rq = q;
 register AFFIX D = (rq+0)-> a;
 register AFFIX C = (rq+-1)-> a;
@@ -807,7 +773,8 @@ register AFFIX A = (rq+-3)-> a;
    q = rq+1;
 }
 
-void Uintisint () {
+void Uintisint ()
+{
    register cont *rq = q;
 register AFFIX C = (rq+0)-> a;
 register AFFIX B = (rq+-1)-> a;
@@ -825,7 +792,8 @@ register AFFIX A = (rq+-2)-> a;
    q = rq+1;
 }
 
-void Uintraisedbyintmodulointisint () {
+void Uintraisedbyintmodulointisint ()
+{
    register cont *rq = q;
 register AFFIX D = (rq+0)-> a;
 register AFFIX C = (rq+-1)-> a;
@@ -845,7 +813,8 @@ register AFFIX A = (rq+-3)-> a;
    q = rq+1;
 }
 
-void Uintisthegcdofintandint () {
+void Uintisthegcdofintandint ()
+{
    register cont *rq = q;
 register AFFIX C = (rq+0)-> a;
 register AFFIX B = (rq+-1)-> a;
@@ -864,7 +833,8 @@ register AFFIX A = (rq+-2)-> a;
 }
 
 
-void Uintisthesquarerootofintwithremainderint() {
+void Uintisthesquarerootofintwithremainderint ()
+{
    register cont *rq = q;
 register AFFIX C = (rq+0)-> a;
 register AFFIX B = (rq+-1)-> a;
@@ -882,7 +852,8 @@ register AFFIX A = (rq+-2)-> a;
    q = rq+1;
 }
 
-void Udecisint () {
+void Udecisint ()
+{
    register cont *rq = q;
 register AFFIX B = (rq+0)-> a;
 register AFFIX A = (rq+-1)-> a;
@@ -897,7 +868,8 @@ register AFFIX A = (rq+-1)-> a;
    (rq+1)-> q = Udecisint;
    q = rq+1;
 }
-void Uintisdec () {
+void Uintisdec ()
+{
    register cont *rq = q;
 register AFFIX B = (rq+0)-> a;
 register AFFIX A = (rq+-1)-> a;
@@ -913,7 +885,8 @@ register AFFIX A = (rq+-1)-> a;
    q = rq+1;
 }
 
-void Ufreeint () { 
+void Ufreeint ()
+{ 
    register cont *rq = q;
 register AFFIX A = (rq+0)-> a;
    if (Dfreeint(A))
@@ -927,7 +900,8 @@ register AFFIX A = (rq+0)-> a;
    q = rq+1; 
 }
 
-void Udecrementsmallint () { 
+void Udecrementsmallint ()
+{ 
    register cont *rq = q;
 register AFFIX A = (rq+0)-> a;
    if (Ddecrementsmallint(A))
@@ -941,7 +915,8 @@ register AFFIX A = (rq+0)-> a;
    q = rq+1; 
 }
 
-void Uincrementsmallint () { 
+void Uincrementsmallint ()
+{ 
    register cont *rq = q;
 register AFFIX A = (rq+0)-> a;
    if (Dincrementsmallint(A))
@@ -955,7 +930,8 @@ register AFFIX A = (rq+0)-> a;
    q = rq+1; 
 }
 
-void Usmalldecisint () { 
+void Usmalldecisint ()
+{ 
    register cont *rq = q;
 register AFFIX B = (rq+0)-> a;
 register AFFIX A = (rq+-1)-> a;
@@ -971,7 +947,8 @@ register AFFIX A = (rq+-1)-> a;
    q = rq+1; 
 }
 
-void Uintisnegative () { 
+void Uintisnegative ()
+{ 
    register cont *rq = q;
 register AFFIX A = (rq+0)-> a;
    if (Dintisnegative(A))
@@ -985,7 +962,8 @@ register AFFIX A = (rq+0)-> a;
    q = rq+1; 
 }
 
-void Unegateint () { 
+void Unegateint ()
+{ 
    register cont *rq = q;
 register AFFIX A = (rq+0)-> a;
    if (Dnegateint(A))
@@ -999,7 +977,8 @@ register AFFIX A = (rq+0)-> a;
    q = rq+1; 
 }
 
-void Uintispositive () { 
+void Uintispositive ()
+{ 
    register cont *rq = q;
 register AFFIX A = (rq+0)-> a;
    if (Dintispositive(A))
@@ -1013,7 +992,8 @@ register AFFIX A = (rq+0)-> a;
    q = rq+1; 
 }
 
-void Uintiszero () { 
+void Uintiszero ()
+{ 
    register cont *rq = q;
 register AFFIX A = (rq+0)-> a;
    if (Dintiszero(A))

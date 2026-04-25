@@ -1,4 +1,36 @@
-version 2.19 [ evoss 150710]
+
+version 2.27 [ evoss 250910]
+  - include json-select.g in distributed files
+  - fix char stack overflow for inline choice coder 
+  - fix clang warnings:-W depreciated prototype 
+version 2.26 [ evoss 231210]
+   - enhance builtin compute allowing "<=" and ">=" operators
+version 2.25 [ evoss 230310]
+   - add "getlastlist_"
+        used to make defing expr 'l+X*last' deterministic.
+version 2.24 [ evoss 230220]
+   - fix lattices. Not sure if these ever worked or just got broken somewhere along versions.
+   - upto 55 lattices per gpup (up from 31)
+   - make lattices behave defining instead of applying 
+   - lattices are not well tested (to be continued)
+version 2.23 [ evoss 230210]
+   - improve error line reportint
+   - don't hint about uppercase superaffixes 
+version 2.22 [ evoss 230122]
+   - convert to c99 std and other clang compiler support fixes 
+   - make addto,lookup last in first out.
+   - report line numbers in trace output.
+   - improve detnestar (forcing defining expression to behave 
+      determinitic by looking ahead at more termininals and meta
+      terminals I.e detnestaralt finds a prefix for which 
+       a larger suffix holds.  
+   - optimize detnestar by skipping over the recognized search string
+      and remove the members after detnestar that generated the search string
+      (optimize_detnestart)
+   - set stack size limit for linux64 target
+version 2.21 [ evoss 170710]
+   - reduce memory allocation for generated parser for small input
+version 2.20 [ evoss 160710]
    - fix undeterminstic terminals to restore cstore
    - make nestarset non predicate
    - fix core dump in glammar gg06.c

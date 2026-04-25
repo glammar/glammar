@@ -7,9 +7,9 @@
     Copyright (C) 1989,2012  Eric Voss, eric337@yahoo.com 
 */
 #include "ge1.h"
+#include <stdlib.h>
 #ifdef DEVALAFFIX
-int Devalaffix (A, B)
-register AFFIX A, B;
+int Devalaffix (AFFIX A, AFFIX B) 
 {
   register char *rc = c;
   if (((A->r) == nil) && ((A->l) == nil))
@@ -71,6 +71,11 @@ void Usetexitcode ()
   CONTINUE;
   (++q)->q = Usetexitcode;
 }
+void Uexit ()
+{
+  exit(2);
+}
+  
 #endif
 
 #ifdef DSETEXITCODE
@@ -79,12 +84,14 @@ int Dsetexitcode ()
   exit_code = 2;
   return true;
 }
+int Dexit ()
+{
+  exit(2);
+}
 #endif
 
 #ifdef DGETENV
-char *getenv ();
-int Dgetenv (A, B)
-register AFFIX A, B;
+int Dgetenv (AFFIX A, AFFIX B) 
 {
   register char *rc = c;
   if (((A->r) == nil) && ((A->l) == nil))
@@ -127,13 +134,12 @@ void Ugetenv ()
 #endif
 
 #ifdef DERRORMESSAGE
-int x_errline (b, e)
-char *b, *e;
+int x_errline (char *b, char *e) 
 {
   if (b > e)
   {
     *c++ = '\n';
-    return;
+    return true;
   }
   if (e > (b + 75))
   {
@@ -142,15 +148,15 @@ char *b, *e;
   }
   while (b <= e)
     *c++ = *b++;
+  return true;
 }
 
-int x_underline (b, e)
-char *b, *e;
+int x_underline (char *b, char *e) 
 {
   if (b > e)
   {
     *c++ = '\n';
-    return;
+    return true;
   }
   if (e > b + 75)
     b = e - 76;
@@ -169,6 +175,7 @@ char *b, *e;
     else
       *c++ = '-';
   }
+  return true;
 }
 
 int x_errmsg ()
@@ -234,14 +241,16 @@ int x_errmsg ()
   return true;
 }
 
-int Derrormessage (A_0)         /* newname */
-register AFFIX A_0;
+int Derrormessage (AFFIX A_0) 
 {
   A_0->t = c;
   A_0->l = nil;
   A_0->r = nil;
+  if (c+500 > cstore_top)
+    cstore_overflow ();
   emsg_count += 1;
   x_errmsg ();
+  return true;
 }
 #endif
 

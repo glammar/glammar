@@ -8,8 +8,7 @@
 */
 #include "ge1.h"
 #ifdef LOOP
-void loop_line_mode (rroot)
-void (*rroot) ();
+void loop_line_mode (void (*rroot) ())
 {
   affix *raf = af;
   char *rc = c;
@@ -19,6 +18,8 @@ void (*rroot) ();
     return;
   }
   ip = input;
+  set_line_num = 1;
+  set_line_pos  = ip;
   do
   {
     *ip++ = getc (inputfile);
@@ -46,12 +47,7 @@ void (*rroot) ();
       ip = input;
       nrofchars = 0;
       set_line_num += 1;
-      if ((set_line_num == 2) && (ll_count != 0))
-      {
-        fprintf (stderr, "root = %x' \n", rroot);
-        /* rroot = uloop; */
-        fprintf (stderr, "root = %x' \n", rroot);
-      }
+      set_line_pos  = ip;
       q -= 1;
       c = rc;
       af = raf;
@@ -63,8 +59,7 @@ void (*rroot) ();
 #endif
 
 #ifdef ERMSG
-int errline (b, e)
-char *b, *e;
+int errline (char *b, char *e) 
 {
   if (b > e)
   {
@@ -83,10 +78,10 @@ char *b, *e;
   while (b <= e)
     fprintf (stderr, "%c", *b++);
   fprintf (stderr, "\n"); b++;
+  return 1; 
 }
 
-int underline (b, e)
-char *b, *e;
+int underline (char *b, char *e) 
 {
   if (!e || !b)
   {
@@ -119,6 +114,7 @@ char *b, *e;
     else
       fprintf (stderr, "-");
   }
+  return 1;
 
 }
 
@@ -149,12 +145,18 @@ int errmsg ()
 
   /* say file */
 
-  if (*current_file_name != '\0')
-    fprintf (stderr, "\n*** %s *** File: %s\n", arg_zero, current_file_name);
+  if (set_file_name && *set_file_name != '\0')
+  {
+    fprintf (stderr, "*** %s *** File: %s\n", a_scriptname.t, set_file_name);
+  }
+  else
+  {
+    fprintf (stderr, "\n");
+  }
 
   if (rmax > 0)
     fprintf (stderr,
-             "\n*** %s *** Out of branches near \"%s\" called from \"%s\"\n", a_scriptname.t, sv_error_msg, pntname);
+             "*** %s *** Out of branches near \"%s\" called from \"%s\"\n", a_scriptname.t, sv_error_msg, pntname);
 
   if (*mip == '\0')
   {
@@ -240,12 +242,12 @@ void result ()
     fprintf (stderr, "\nHere is how much storage glammar used:\n");
     fprintf (stderr, "eval count = %ld\n", eval_count);
     fprintf (stderr,
-             "Backtrack stack size = %ldMiB (out of ?), increase with csh command limit()\n", (stack_size >> 20) + 1);
+             "Backtrack stack size = %lldMiB (out of ?), increase with csh command limit()\n", (stack_size >> 20) + 1);
     fprintf (stderr,
              "Char stack size  = %.1fMB (out of %.1fMB), increase with -cn (-c1 = 1MB)\n",
              ((float) cur_char_heap_size) / 1000000.0, ((float) max_char_heap_size) / 1000000.0);
     fprintf (stderr,
-             "Affix stack size  = %.1fMB (out of %.1fMB), increase with -hn (-h1 = %dMB)\n",
+             "Affix stack size  = %.1fMB (out of %.1fMB), increase with -hn (-h1 = %ldMB)\n",
              ((float) cur_afx_heap_size) / 1000000.0, ((float) max_afx_heap_size) / 1000000.0, sizeof (affix));
   }
   if (output == 0)
@@ -270,8 +272,7 @@ void result ()
 #ifdef DREPORT
 
 /*  report   */
-int Dreport (A, B)
-register AFFIX A, B;
+int Dreport (AFFIX A) 
 {
   if (output == 0)
   {
@@ -311,9 +312,7 @@ void Ureport ()
 #endif
 
 #ifdef PRINTA
-void printa (outdir, afx)
-register AFFIX afx;
-FILE *outdir;
+void printa (FILE *outdir, AFFIX afx) 
 {
   register char *cp;
 tailrecel:
@@ -322,7 +321,7 @@ tailrecel:
   cp = afx->t;
   if (cp == fast_list_acces)
   {
-    fprintf (outdir, "!<LNODE_%d>!", afx->r);
+    fprintf (outdir, "!<LNODE_%p>!", afx->r);
     return;
   }
   if (cp == undefined)
@@ -351,8 +350,7 @@ tailrecel:
   goto tailrecel;
 }
 
-void sprinta (afx)
-register AFFIX afx;
+void sprinta (AFFIX afx) 
 {
   register char *cp, *cp0, *rc;
 tailrecel:
@@ -367,7 +365,7 @@ tailrecel:
   if (cp == undefined)
   {
     if (rmax > 0)
-      fprintf (stderr, "==> %d :\n", rmax);
+      fprintf (stderr, "==> %ld :\n", rmax);
     fprintf (stderr, "%s: Glammar message:\nIn sprinta (\"%s\"): trying to evaluate uninstantiated affix.\n", arg_zero,
              cp);
     parsecount = 0;
@@ -377,7 +375,6 @@ tailrecel:
   }
   if (cp != empty)
   {
-    char *ic;
     eval_count += 1;
 
     for (rc = c; *cp != '\0';)
@@ -392,17 +389,12 @@ tailrecel:
         *(rc + 3) = *(cp + 3);
         *(rc + 4) = *(cp + 4);
         *(rc + 5) = *(cp + 5);
-#ifdef EIGHT_BYTE_ADDR
         *(rc + 6) = *(cp + 6);
         *(rc + 7) = *(cp + 7);
         *(rc + 8) = *(cp + 8);
         *(rc + 9) = *(cp + 9);
-        cp += 4;
-        rc += 4;
-#endif
-        cp += 6;
-        rc += 6;
-
+        cp += 10;
+        rc += 10;
       }
       else
       {
@@ -427,4 +419,5 @@ tailrecel:
   goto tailrecel;
 
 }
+
 #endif

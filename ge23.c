@@ -9,14 +9,14 @@
 
 #include "ge1.h"
 #ifdef SET_ERRMSG
-set_errmsg (ntname)
-char *ntname;
+long set_errmsg (char *ntname) 
 {
   if (rmax < level)
   {
     strcpy (sv_error_msg, ntname);
     rmax = level;
   }
+ return true;
 }
 #endif
 
@@ -24,26 +24,18 @@ char *ntname;
 
 
 #ifdef AFXCMP
-#ifdef EIGHT_BYTE_ADDR
 #define GET_CELL_IN_STRING(cell,str)\
 { register char *d = (char *) & cell;\
    register char *rc = str; \
    d [0] = rc [1] ; d[1] = rc [2]; d [2] = rc [3]; d[3] = rc[4]; \
    d [0+4] = rc [1+4] ; d[1+4] = rc [2+4]; d [2+4] = rc [3+4]; d[3+4] = rc[4+4]; }
-#else
-#define GET_CELL_IN_STRING(cell,str)\
-{ register char *d = (char *) & cell;\
-   register char *rc = str; \
-   d [0] = rc [1] ; d[1] = rc [2]; d [2] = rc [3]; d[3] = rc[4]; }
-#endif /* EIGHT_BYTE_ADDR */
 
-afxcmp (x, y)
-register char *x, *y;
+long afxcmp (char *x, char *y) 
 {
   if ((x == undefined) || (y == undefined))
   {
     if (rmax > 1)
-      fprintf (stderr, "==> %d :\n", rmax);
+      fprintf (stderr, "==> %ld :\n", rmax);
     fprintf (stderr, "%s: Glammar message:\n\
       In afxcmp (\"%s\",\"%s\"): trying to evaluate uninstantiated affix.\n", arg_zero, x, y);
     parsecount = 0;
@@ -85,8 +77,7 @@ register char *x, *y;
   return 1;
 }
 
-lexafxcmp (x, y)
-register char *x, *y;
+long lexafxcmp (char *x, char *y) 
 {
   for (; *y != '\0';)
     if (*x == '\001' || *x == '\002')

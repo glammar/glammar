@@ -1,10 +1,10 @@
 
 /*
 
-    This file is a part of the GLAMMAR source distribution 
-    and therefore subjected to the copy notice below. 
-    
-    Copyright (C) 1989,2012  Eric Voss, eric337@yahoo.com 
+   This file is a part of the GLAMMAR source distribution 
+   and therefore subjected to the copy notice below. 
+
+   Copyright (C) 1989,2012  Eric Voss, eric337@yahoo.com 
 
  *  file  : compute properties 
  *                  deterministic rules
@@ -18,14 +18,58 @@
 long det_count = 0, nondet_count = 0, memo_count = 0, recursive_count = 0;
 long last_alt = true, memo_gain;
 long rec_count = 0;
-long adp_rule (long rule, long count);
-void left_rec_rule (long rule);
-long get_affix (long afx, long count);
-void recursive_rule (long rule);
 
-init_builtins ()
+
+/* exports
+   void adp_walk ();
+   void better_index ();
+   void compute_predicates ();
+   void determ ();
+   void empty ();
+   void hint_on_non_used_hyperrules (long local);
+   void init_builtins ();
+   void left_rec ();
+   void recursive_ ();
+   void tag_index ();
+   */
+
+
+static long adp_rule (long rule, long count);
+static long alt_adp (char *reprtrm, long mem);
+static long determ_alts (long alt);
+static long determ_mems (long member);
+static long determ_rule (long rule);
+static long get_affix (long afx, long count);
+static long get_builtin (char *repr);
+static long get_meta_builtin (char *repr);
+static long inherited_afx (long alt);
+static long no_iha (long afx);
+static long volatile_alts (long alt);
+static long volatile_mems (long member);
+static long volatile_rule (long rule);
+static void add_skip ();
+static void add_skip_in_alt (long alt);
+static void adp_clear ();
+static void adp_rest ();
+static void adp_stddefs ();
+static void check_determ ();
+static void check_volatile ();
+static void compute_determ (long rule);
+static void compute_memo_gain ();
+static void compute_volatile (long rule);
+static void decrease_mem_count (long rule);
+static void decrease_mem_count_preds (long rule);
+static void left_rec_alts (long alt);
+static void left_rec_mem (long member);
+static void left_rec_rule (long rule);
+static void recursive_alts (long alt);
+static void recursive_rule (long rule);
+static void set_nonpreds ();
+static void set_notempty ();
+static void set_nr_of_mems ();
+static void set_nr_of_mems_preds ();
+void init_builtins () 
 {
-  long rule, alt;
 
   equal = get_builtin ("equal");
   if (meta_uniq_flag)
@@ -64,14 +108,14 @@ init_builtins ()
   unpair = get_builtin ("unpair");
   where = get_builtin ("where");
   getlist_ = get_builtin ("getlist_");
+  getlastlist_ = get_builtin ("getlastlist_");
   add_to = get_builtin ("addto");
   assign = get_builtin ("assign");
 
   meta_empty = get_meta_builtin ("empty");
 }
 
-get_builtin (repr)
-register char *repr;
+static long get_builtin (char *repr) 
 {
   register long rule, rr;
   for (rule = laststdpred; (rule != nil) && (!mystrcmp (REPR (rule), repr)); rule = BROTHER (rule));
@@ -85,15 +129,14 @@ register char *repr;
     if (REPR (rule) == REPR (rr))
     {
       if (input_from_partlist)
-        fprintf (stderr, "In %s:\n", PART (rr));
+	fprintf (stderr, "In %s:\n", PART (rr));
       fprintf (stderr, "line %ld: %s: already in use do not redefine\n", LINE ((rr)), FREPR (rr));
       exit (12);
     }
   return rule;
 }
 
-get_meta_builtin (repr)
-register char *repr;
+static long get_meta_builtin (char *repr) 
 {
   register long rule, rr;
   rr = nil;
@@ -102,13 +145,13 @@ register char *repr;
     {
       if (rr != nil)
       {
-        if (input_from_partlist)
-          fprintf (stderr, "In %s:\n", PART (rr));
-        fprintf (stderr, "line %ld: %s: name already in use; do not redefine\n", LINE (rr), REPR (rr));
-        exit (12);
+	if (input_from_partlist)
+	  fprintf (stderr, "In %s:\n", PART (rr));
+	fprintf (stderr, "line %ld: %s: name already in use; do not redefine\n", LINE (rr), REPR (rr));
+	exit (12);
       }
       else
-        rr = rule;
+	rr = rule;
     }
 
   if (rr == nil)
@@ -121,7 +164,7 @@ register char *repr;
 
 }
 
-determ ()
+void determ () 
 {
   long rule;
   if (!lift_flag)
@@ -147,21 +190,21 @@ determ ()
     return;
   }
 
-/* 
- * builtins classification
- *    a:.        ----- deterministic
- *    a:;a:.     ----- deterministic if -d flag is on , else nondeterministic
- *    a:;a:;a:.  ----- nondeterministic 
- *
- */
+  /* 
+   * builtins classification
+   *    a:.        ----- deterministic
+   *    a:;a:.     ----- deterministic if -d flag is on , else nondeterministic
+   *    a:;a:;a:.  ----- nondeterministic 
+   *
+   */
   for (rule = laststdpred; rule != nil; rule = BROTHER (rule))
     if (BROTHER (SON (rule)) == nil)
       SET (rule, deterministic);
     else if (BROTHER (BROTHER (SON (rule))) == nil)
       if (det_flag)
-        SET (rule, deterministic);
+	SET (rule, deterministic);
       else
-        SET (rule, nondeterministic);
+	SET (rule, nondeterministic);
     else
       SET (rule, nondeterministic);
 
@@ -171,6 +214,7 @@ determ ()
 
   if ((det_flag) && (nondet_count > 0))
   {
+    fprintf (stderr, "glammar: grammer is nondeterministic.\n");
     exit (-1);
   }
   if ((MARKED (root, deterministic)) && (!det_flag))
@@ -183,7 +227,7 @@ determ ()
     fprintf (stderr, "glammar semantic compute: Deterministic: (%ld,%ld)\n", det_count, nondet_count);
 }
 
-check_determ ()
+static void check_determ () 
 {
   long alt, rule, again, over = 0, mem;
   do
@@ -191,19 +235,19 @@ check_determ ()
     again = 0;
     for (rule = root; rule != laststdpred; rule = BROTHER (rule))
       if (MARKED (rule, deterministic))
-        for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
-          for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
-            if (NONTERMINAL (mem) && MARKED (DEF (mem), nondeterministic))
-            {
-              if (verbose_flag)
-              {
-                fprintf (stderr, "glammar: %s  is nondeterministic.\n", FREPR (mem));
-              }
+	for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
+	  for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
+	    if (NONTERMINAL (mem) && MARKED (DEF (mem), nondeterministic))
+	    {
+	      if (verbose_flag)
+	      {
+		fprintf (stderr, "glammar: %s  is nondeterministic.\n", FREPR (mem));
+	      }
 
-              again += 1;
-              SET (rule, nondeterministic);
-              UNSET (rule, deterministic);
-            }
+	      again += 1;
+	      SET (rule, nondeterministic);
+	      UNSET (rule, deterministic);
+	    }
     if (again > 0)
       over += 1;
   }
@@ -212,8 +256,7 @@ check_determ ()
     fprintf (stderr, "glammar semantic compute: deterministic: needed %ld re-computations\n", over);
 }
 
-compute_determ (rule)
-long rule;
+static void compute_determ (long rule) 
 {
   if (rule == laststdpred)
     return;
@@ -225,8 +268,7 @@ long rule;
   }
 }
 
-determ_rule (rule)
-long rule;
+static long determ_rule (long rule) 
 {
   if (MARKED (rule, nondeterministic))
   {
@@ -250,11 +292,11 @@ long rule;
       det_count += 1;
       SET (rule, deterministic);
 
-/*       fprintf(stderr, "line %ld: `%s' deterministic.\n",DEF(rule),REPR(rule)); */
+      /*       fprintf(stderr, "line %ld: `%s' deterministic.\n",DEF(rule),REPR(rule)); */
     }
     /* else fprintf(stderr, "line %ld: `%s' recursive.\n",DEF(rule),REPR(rule)); */
 
-/* */
+    /* */
     return true;
   }
   else
@@ -264,10 +306,10 @@ long rule;
     if (det_flag)
     {
       if (input_from_partlist)
-        fprintf (stderr, "In %s:\n", PART (rule));
+	fprintf (stderr, "In %s:\n", PART (rule));
       fprintf (stderr, "line %ld: `%s' nondeterministic.\n", LINE ((rule)), FREPR (rule));
 
-/*          SET(rule, deterministic); */
+      /*          SET(rule, deterministic); */
       return true;
     }
     else
@@ -277,8 +319,7 @@ long rule;
 }
 
 
-determ_alts (alt)
-long alt;
+static long determ_alts (long alt) 
 {
   for (; alt != nil; alt = BROTHER (alt))
   {
@@ -294,15 +335,14 @@ long alt;
 }
 
 
-determ_mems (member)
-long member;
+static long determ_mems (long member) 
 {
   long cut_in_alt = last_alt;
   register long mem = member;
   if (!cut_in_alt)
     for (; mem != nil; mem = BROTHER (mem))
       if (DEF (mem) == cut)
-        cut_in_alt = true;
+	cut_in_alt = true;
 
   if (!cut_in_alt)
     return false;
@@ -316,21 +356,21 @@ long member;
   return true;
 }
 
-compute_predicates ()
+void compute_predicates () 
 {
   set_nr_of_mems_preds ();
   decrease_mem_count_preds (-99);
   set_nonpreds ();
 }
 
-empty ()
+void empty () 
 {
   set_nr_of_mems ();
   decrease_mem_count (-99);
   set_notempty ();
 }
 
-set_nr_of_mems ()
+static void set_nr_of_mems () 
 {
   long rule, alt, mem;
   for (rule = root; rule != nil; rule = BROTHER (rule))
@@ -338,24 +378,23 @@ set_nr_of_mems ()
     {
       long nr_mems = 0;
       for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
-        if (FLAG_MARKED (mem, redirected_input))
-          continue;
-        else if TERMINAL
-          (mem)
-        {
-          SET (rule, notemptyrule);
-          for (; BROTHER (alt) != nil; alt = BROTHER (alt));
-          break;
-        }
-        else
-          nr_mems += 1;
+	if (FLAG_MARKED (mem, redirected_input))
+	  continue;
+	else if (TERMINAL(mem))
+	{
+	  SET (rule, notemptyrule);
+	  for (; BROTHER (alt) != nil; alt = BROTHER (alt));
+	  break;
+	}
+	else
+	  nr_mems += 1;
       DEF (alt) = nr_mems;
     }
 }
 
-set_nr_of_mems_preds ()
+static void set_nr_of_mems_preds () 
 {
-  long rule, alt, mem, no_mems;
+  long rule, alt, mem;
   for (rule = root; rule != nil; rule = BROTHER (rule))
   {
     long nr_mems = 0;
@@ -363,44 +402,43 @@ set_nr_of_mems_preds ()
     {
       for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
       {
-        if (FLAG_MARKED (mem, redirected_input))
-          continue;
-        if (TERMINAL (mem))
-        {
-          SET (rule, not_a_predicate);
-          break;
-        }
-        else if (DEF (mem) != rule)
-          nr_mems += 1;
+	if (FLAG_MARKED (mem, redirected_input))
+	  continue;
+	if (TERMINAL (mem))
+	{
+	  SET (rule, not_a_predicate);
+	  break;
+	}
+	else if (DEF (mem) != rule)
+	  nr_mems += 1;
       }
     }
     DEF (SON (rule)) = nr_mems;
   }
 }
 
-decrease_mem_count_preds (rule)
-long rule;
+static void decrease_mem_count_preds (long rule) 
 {
   long rl, alt, mem;
   for (rl = root; rl != nil; rl = BROTHER (rl))
     if ((!MARKED (rl, not_a_predicate)) && (!MARKED (rl, is_predicate)))
     {
       for (alt = SON (rl); alt != nil; alt = BROTHER (alt))
-        for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
-          if (FLAG_MARKED (mem, redirected_input))
-            continue;
-          else if (TERMINAL (mem));
-          else if (DEF (mem) == rule)
-            DEF (SON (rl)) -= 1;
+	for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
+	  if (FLAG_MARKED (mem, redirected_input))
+	    continue;
+	  else if (TERMINAL (mem));
+	  else if (DEF (mem) == rule)
+	    DEF (SON (rl)) -= 1;
       if (DEF (SON (rl)) == 0)
       {
-        SET (rl, is_predicate);
-        decrease_mem_count_preds (rl);
+	SET (rl, is_predicate);
+	decrease_mem_count_preds (rl);
       }
     }
 }
 
-set_nonpreds ()
+static void set_nonpreds () 
 {
   long rule, preds = 0, non_preds = 0;
   for (rule = root; rule != nil; rule = BROTHER (rule))
@@ -415,32 +453,31 @@ set_nonpreds ()
     fprintf (stderr, "predicates: (%ld,%ld)\n", preds, non_preds);
 }
 
-decrease_mem_count (rule)
-long rule;
+static void decrease_mem_count (long rule) 
 {
   long rl, alt, mem;
   for (rl = root; rl != nil; rl = BROTHER (rl))
     if ((!MARKED (rl, emptyrule)) && (!MARKED (rl, notemptyrule)))
       for (alt = SON (rl); alt != nil; alt = BROTHER (alt))
       {
-        for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
-          if (TERMINAL (mem) || FLAG_MARKED (mem, redirected_input));
-          else if (DEF (mem) == rule)
-            DEF (alt) -= 1;
+	for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
+	  if (TERMINAL (mem) || FLAG_MARKED (mem, redirected_input));
+	  else if (DEF (mem) == rule)
+	    DEF (alt) -= 1;
 
-        if (DEF (alt) == 0)
-        {
-          SET (rl, emptyrule);
-          decrease_mem_count (rl);
-          break;
-        }
+	if (DEF (alt) == 0)
+	{
+	  SET (rl, emptyrule);
+	  decrease_mem_count (rl);
+	  break;
+	}
       }
 }
 
 
 long et = 0, net = 0;
 
-set_notempty ()
+static void set_notempty () 
 {
   long rule;
   for (rule = root; rule != nil; rule = BROTHER (rule))
@@ -455,7 +492,7 @@ set_notempty ()
     fprintf (stderr, "empty: (%ld,%ld)\n", et, net);
 }
 
-adp_walk ()
+void adp_walk () 
 {
 
   adp_clear ();
@@ -465,7 +502,7 @@ adp_walk ()
 
   if (verbose_flag)
     fprintf (stderr, "%ld productions memoized (table size = %ldk)\n",
-             memo_count, (memo_count * (runtime_input_size >> 3)) >> 10);
+	memo_count, (memo_count * (runtime_input_size >> 3)) >> 10);
 
   compute_memo_gain ();
   if (verbose_flag)
@@ -473,18 +510,17 @@ adp_walk ()
 
 }
 
-add_skip ()
+static void add_skip () 
 {
   register long rule, alt;
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     if (MARKED (rule, nondeterministic))
       for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
-        if ((AM_flag) || (no_iha (AFFIXDEF (alt))))
-          add_skip_in_alt (alt);
+	if ((AM_flag) || (no_iha (AFFIXDEF (alt))))
+	  add_skip_in_alt (alt);
 }
 
-no_iha (afx)
-long afx;
+static long no_iha (long afx) 
 {
   for (; afx != nil; afx = BROTHER (afx))
     if (INHERITED (afx))
@@ -492,8 +528,7 @@ long afx;
   return true;
 }
 
-add_skip_in_alt (alt)
-long alt;
+static void add_skip_in_alt (long alt) 
 {
   register long afx, skip_mem, max_count = 10000, count, mem, prev_mem, af, tm;
   char *reprterm;
@@ -529,13 +564,13 @@ long alt;
     {
       reprterm = REPR (SON (afx));
       for (mem = SON (alt), count = 0; ((mem != nil) &&
-                                        (MARKED (DEF (mem), deterministic))); mem = BROTHER (mem), count++);
+	    (MARKED (DEF (mem), deterministic))); mem = BROTHER (mem), count++);
       for (; mem != nil; mem = BROTHER (mem), count++)
-        for (af = AFFIXTREE (mem); af != nil; af = BROTHER (af))
-          if (!DERIVED (af))
-            for (tm = SON (af); tm != nil; tm = BROTHER (tm))
-              if ((REPR (tm) == reprterm) && (count < max_count))
-                max_count = count;
+	for (af = AFFIXTREE (mem); af != nil; af = BROTHER (af))
+	  if (!DERIVED (af))
+	    for (tm = SON (af); tm != nil; tm = BROTHER (tm))
+	      if ((REPR (tm) == reprterm) && (count < max_count))
+		max_count = count;
 
     }
   }
@@ -565,7 +600,7 @@ long alt;
 
 }
 
-adp_clear ()
+static void adp_clear () 
 {
   register long rule, afx, alt;
 
@@ -574,58 +609,59 @@ adp_clear ()
     {
       DEF (alt) = -1;
       for (afx = AFFIXDEF (alt); afx != nil; afx = BROTHER (afx))
-        DEF (afx) = 0;
+	DEF (afx) = 0;
     }
 }
 
-adp_stddefs ()
+static void adp_stddefs () 
 {
   register long rule, afx, alt;
   for (rule = laststdpred; rule != nil; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
       for (afx = AFFIXDEF (alt); afx != nil; afx = BROTHER (afx))
-        if (INHERITED (afx))
-          if (NODENAME (SON (afx)) == affixtm)
-            SET_ADP (afx, affix_directed_parsing);
-          else
-            SET_ADP (afx, no_affix_directed_parsing);
+	if (INHERITED (afx))
+	{
+	  if (NODENAME (SON (afx)) == affixtm)
+	    SET_ADP (afx, affix_directed_parsing);
+	  else
+	    SET_ADP (afx, no_affix_directed_parsing);
+	}
 }
 
-adp_rest ()
+static void adp_rest () 
 {
-  register long rule, afx, alt, count;
+  register long rule, afx, count;
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     for (afx = AFFIXDEF (SON (rule)), count = 0; afx != nil; afx = BROTHER (afx), count++)
       if (INHERITED (afx))
-        adp_rule (rule, count);
+	adp_rule (rule, count);
 }
 
-alt_adp (reprtrm, mem)
-char *reprtrm;
-long mem;
+static long alt_adp (char *reprtrm, long mem) 
 {
   long count = 0;
   register long trm, afx;
   for (; mem != nil; mem = BROTHER (mem))
     for (count = 0, afx = AFFIXTREE (mem); afx != nil; afx = BROTHER (afx), count += 1)
       if (INHERITED (afx))
-        for (trm = SON (afx); trm != nil; trm = BROTHER (trm))
-          if (REPR (trm) == reprtrm)
-            if (adp_rule (DEF (mem), count))
-              return 1;
-            else
-            {
-              long af;
-              for (af = AFFIXTREE (mem); af != nil; af = BROTHER (af))
-                if (NODENAME (af) == derived)
-                  if (alt_adp (REPR (SON (af)), BROTHER (mem)))
-                    return 1;
-            }
-  return 0;
+	for (trm = SON (afx); trm != nil; trm = BROTHER (trm))
+	  if (REPR (trm) == reprtrm)
+	  {
+	    if (adp_rule (DEF (mem), count))
+	      return true;
+	    else
+	    {
+	      long af;
+	      for (af = AFFIXTREE (mem); af != nil; af = BROTHER (af))
+		if (NODENAME (af) == derived)
+		  if (alt_adp (REPR (SON (af)), BROTHER (mem)))
+		    return true;
+	    }
+	  }
+  return false;
 }
 
-long adp_rule (rule, count)
-long rule, count;
+static long adp_rule (long rule, long count) 
 {
   long afx, alt;
   for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
@@ -641,40 +677,39 @@ long rule, count;
       SET_ADP (afx, processing);
       if (!alt_adp (REPR (SON (afx)), SON (alt)))
       {
-        SET_ADP (afx, no_affix_directed_parsing);
-        UNSET_ADP (afx, processing);
+	SET_ADP (afx, no_affix_directed_parsing);
+	UNSET_ADP (afx, processing);
 
       }
       else
       {
-        UNSET_ADP (afx, processing);
-        for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
-          for (afx = AFFIXDEF (alt); afx != nil; afx = BROTHER (afx))
-            if (NODENAME (afx) == inherited)
-            {
-              UNSET_ADP (afx, no_affix_directed_parsing);
-              SET_ADP (afx, affix_directed_parsing);
-            }
-        return true;
+	UNSET_ADP (afx, processing);
+	for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
+	  for (afx = AFFIXDEF (alt); afx != nil; afx = BROTHER (afx))
+	    if (NODENAME (afx) == inherited)
+	    {
+	      UNSET_ADP (afx, no_affix_directed_parsing);
+	      SET_ADP (afx, affix_directed_parsing);
+	    }
+	return true;
       }
     }
   }
   return false;
 }
 
-long get_affix (afx, count)
-long afx, count;
+static long get_affix (long afx, long count) 
 {
   for (; afx != nil; afx = BROTHER (afx), count -= 1)
     if (INHERITED (afx))
       if (count == 0)
-        return afx;
+	return afx;
   fprintf (stderr, "glammar: fatal compiler error in adp.get_affix (count was %ld)\n", count);
   exit (-1);
   return 0;                     /* Bypass compiler warning */
 }
 
-left_rec ()
+void left_rec () 
 {
   long rule;
   left_rec_rule (root);
@@ -682,41 +717,40 @@ left_rec ()
     if (MARKED (rule, leftrec))
     {
       if (input_from_partlist)
-        fprintf (stderr, "In %s:\n", PART (rule));
+	fprintf (stderr, "In %s:\n", PART (rule));
       fprintf (stderr, "line %ld: `%s' left recursive\n", LINE ((rule)), FREPR (rule));
       exit (-1);
     }
 }
 
-void left_rec_rule (long rule)
+static void left_rec_rule (long rule)
 {
   if (MARKED (rule, processing))
   {
     SET (rule, leftrec);
-    return;
+    return ;
   }
   if (MARKED (rule, leftrec))
-    return;
+    return ;
   if (MARKED (rule, notleftrec))
-    return;
+    return ;
   SET (rule, processing);
   left_rec_alts (SON (rule));
   UNSET (rule, processing);
   if (!MARKED (rule, leftrec))
     SET (rule, notleftrec);
+  return ;
 }
 
 
-left_rec_alts (alt)
-long alt;
+static void left_rec_alts (long alt) 
 {
   for (; alt != nil; alt = BROTHER (alt))
     left_rec_mem (SON (alt));
 }
 
 
-left_rec_mem (member)
-long member;
+static void left_rec_mem (long member) 
 {
   for (; member != nil; member = BROTHER (member))
   {
@@ -734,7 +768,7 @@ long member;
 }
 
 
-recursive_ ()
+void recursive_ () 
 {
   long rule;
   recursive_rule (root);
@@ -742,12 +776,12 @@ recursive_ ()
   {
     for (rule = root; rule != laststdpred; rule = BROTHER (rule))
       if (MARKED (rule, recursive))
-        recursive_count += 1;
+	recursive_count += 1;
     fprintf (stderr, "glammar semantic compute: %ld rules are recursive\n", recursive_count);
   }
 }
 
-void recursive_rule (long rule)
+static void recursive_rule (long rule)
 {
   if (MARKED (rule, processing))
   {
@@ -763,22 +797,22 @@ void recursive_rule (long rule)
   UNSET (rule, processing);
   if (!MARKED (rule, recursive))
     SET (rule, notrecursive);
+  return;
 }
 
 
-recursive_alts (alt)
-long alt;
+static void recursive_alts (long alt) 
 {
   register long member;
   for (; alt != nil; alt = BROTHER (alt))
     for (member = SON (alt); member != nil; member = BROTHER (member))
       if (TERMINAL (member));
       else
-        recursive_rule (DEF (member));
+	recursive_rule (DEF (member));
 }
 
 
-compute_memo_gain ()
+static void compute_memo_gain () 
 {
   register long rule, alt;
 
@@ -788,15 +822,14 @@ compute_memo_gain ()
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
       if (MEMOIZE (alt))
       {
-        if (inherited_afx (alt))
-          memo_gain += 1;
+	if (inherited_afx (alt))
+	  memo_gain += 1;
       }
 }
 
 
 
-inherited_afx (alt)
-long alt;
+static long inherited_afx (long alt) 
 {
   long afx;
 
@@ -807,8 +840,7 @@ long alt;
 }
 
 
-hint_on_non_used_hyperrules (local)
-long local;
+void hint_on_non_used_hyperrules (long local) 
 {
   long rule;
   long l = 0;
@@ -820,15 +852,15 @@ long local;
     {
       char *r;
       if (rule == root || rule == init_one_star)
-        continue;
+	continue;
       if (input_from_partlist)
-        fprintf (stderr, "In %s:\n", PART (rule));
+	fprintf (stderr, "In %s:\n", PART (rule));
       r = FREPR (rule);
       fprintf (stderr, "line %ld: (hint) lhs '%s' not used\n", LINE ((rule)), r);
     }
 }
 
-int tag_cmp (const void *e1, const void *e2)
+static int  tag_cmp (const void *e1, const void *e2)
 {
   long r1, r2;
   r1 = *((long *) e1);
@@ -836,9 +868,9 @@ int tag_cmp (const void *e1, const void *e2)
   return strcmp (REPR (r1), REPR (r2));
 }
 
-tag_index ()
+void tag_index () 
 {
-  long alt, rule, rrule, mem;
+  long rule, rrule;
   long *list, nr = 1;
 
   if (output == stdout)
@@ -912,7 +944,7 @@ tag_index ()
 }
 
 
-better_index ()
+void better_index () 
 {
   long alt, rule, rrule, mem;
   for (rrule = root; rrule != laststdpred; rrule = BROTHER (rrule))
@@ -921,28 +953,29 @@ better_index ()
     if (input_from_partlist)
     {
       if (fprintf (indexfile, "%s in %s used by:\n", FREPR (rrule), PART (rrule)) == EOF)
-        fprintf (stderr, "glammar: Write to index file failed\n");
+	fprintf (stderr, "glammar: Write to index file failed\n");
     }
     else if (fprintf (indexfile, "%s used by:\n", FREPR (rrule)) == EOF)
       fprintf (stderr, "glammar: Write to index file failed\n");
 
     for (rule = root; rule != laststdpred; rule = BROTHER (rule))
       for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
-        for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
-          if (NONTERMINAL (mem) && DEF (mem) == rrule)
-          {
-            if (input_from_partlist)
-              fprintf (indexfile, "  %s %s,%ld\n", PART (rule), FREPR (rule), LINE (mem));
-            else
-              fprintf (indexfile, "  %s,%ld\n", FREPR (rule), LINE (mem));
-          }
+	for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
+	  if (NONTERMINAL (mem) && DEF (mem) == rrule)
+	  {
+	    if (input_from_partlist)
+	      fprintf (indexfile, "  %s %s,%ld\n", PART (rule), FREPR (rule), LINE (mem));
+	    else
+	      fprintf (indexfile, "  %s,%ld\n", FREPR (rule), LINE (mem));
+	  }
   }
 }
 
 
 
 long vol_count, nonvol_count;
-set_volatile ()
+
+long set_volatile () 
 {
   long alt, rule, mem;
   SET (assign, isvolatile);
@@ -973,31 +1006,31 @@ set_volatile ()
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
     {
       long afx;
-      long noderived = true;
       for (afx = AFFIXDEF (alt); afx != nil; afx = BROTHER (afx))
-        if (DERIVED (afx))
-          break;
+	if (DERIVED (afx))
+	  break;
 
       if (afx != nil)
-        break;
+	break;
 
       mem = SON (alt);
       if (mem == nil)
-        continue;
+	continue;
 
 
       for (; mem != nil; mem = BROTHER (mem))
-        if (NONTERMINAL (mem) && MARKED (DEF (mem), isvolatile))
-          break;
+	if (NONTERMINAL (mem) && MARKED (DEF (mem), isvolatile))
+	  break;
       if (mem != nil)
-        continue;
+	continue;
 
 
       FLAG_SET (alt, freestacks_f);
     }
+  return 0;
 }
 
-check_volatile ()
+static void check_volatile () 
 {
   long alt, rule, again, over = 0, mem;
   do
@@ -1005,19 +1038,19 @@ check_volatile ()
     again = 0;
     for (rule = root; rule != laststdpred; rule = BROTHER (rule))
       if (MARKED (rule, nonvolatile))
-        for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
-          for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
-            if (NONTERMINAL (mem) && MARKED (DEF (mem), isvolatile))
-            {
-              if (verbose_flag && !again)
-              {
-                fprintf (stderr, "glammar: %s  is isvolatile.\n", FREPR (mem));
-              }
+	for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
+	  for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
+	    if (NONTERMINAL (mem) && MARKED (DEF (mem), isvolatile))
+	    {
+	      if (verbose_flag && !again)
+	      {
+		fprintf (stderr, "glammar: %s  is isvolatile.\n", FREPR (mem));
+	      }
 
-              again += 1;
-              UNSET (rule, nonvolatile);
-              SET (rule, isvolatile);
-            }
+	      again += 1;
+	      UNSET (rule, nonvolatile);
+	      SET (rule, isvolatile);
+	    }
     if (again > 0)
       over += 1;
   }
@@ -1026,8 +1059,7 @@ check_volatile ()
     fprintf (stderr, "glammar semantic compute: isvolatile: needed %ld re-computations\n", over);
 }
 
-compute_volatile (rule)
-long rule;
+static void compute_volatile (long rule) 
 {
   if (rule == laststdpred)
     return;
@@ -1035,8 +1067,7 @@ long rule;
   volatile_rule (rule);
 }
 
-volatile_rule (rule)
-long rule;
+static long volatile_rule (long rule) 
 {
   if (MARKED (rule, nonvolatile))
   {
@@ -1068,8 +1099,7 @@ long rule;
 }
 
 
-volatile_alts (alt)
-long alt;
+static long volatile_alts (long alt) 
 {
   for (; alt != nil; alt = BROTHER (alt))
   {
@@ -1080,8 +1110,7 @@ long alt;
 }
 
 
-volatile_mems (member)
-long member;
+static long volatile_mems (long member) 
 {
   long mem = member;
 

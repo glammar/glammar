@@ -1,0 +1,18 @@
+To install:
+
+1) Copy one of the files Config/make.* to Config/make.local 
+2) Addapt make.local to your local situation.
+    This will always be necessary because of absolute pathnames.
+    If you don't work on one of the predefined  systems  you may have
+     to do some additional changes.
+     If so, would you be so kind to let me (ericv@cs.kun.nl) know your 
+     experiences, problems etc.
+3) Return to the main directory and enter:
+   make setup 
+   make 
+   make install
+   [make test]
+4) If you want the pretty printer to be installed enter (you will need LaTeX then):
+   make install-glammar-pp
+
+Goodluck!!

@@ -84,8 +84,7 @@ void Uidentifier ()
 #define TESTmorename  (isalnum (*rip) ) || (*rip == '_') || (*rip == '\'')
 
 #ifdef  DIDENTIFIER
-int Didentifier (A_0)
-register AFFIX A_0;
+int Didentifier (AFFIX A_0) 
 {
   register char *rip = ip, *rc = c;
   if (!TESTletter)
@@ -96,6 +95,8 @@ register AFFIX A_0;
   do
   {
     *rc++ = *rip++;
+    if (rc > cstore_top)
+      cstore_overflow ();
   }
   while (TESTmorename);
   *rc++ = '\0';
@@ -141,8 +142,7 @@ void Uletterdigitsequence ()
 #define TESTletdig  (isalnum (*rip) )
 
 #ifdef DLETTERDIGITSEQUENCE
-int Dletterdigitsequence (A_0)
-register AFFIX A_0;
+int Dletterdigitsequence (AFFIX A_0) 
 {
   register char *rip = ip, *rc = c;
   if (!TESTletter)
@@ -153,6 +153,8 @@ register AFFIX A_0;
   do
   {
     *rc++ = *rip++;
+    if (rc > cstore_top)
+      cstore_overflow ();
   }
   while (TESTletdig);
   *rc++ = '\0';

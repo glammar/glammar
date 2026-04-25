@@ -8,18 +8,17 @@
 */
 #include "ge1.h"
 #define TRACE_RETURN(trm, rc, pre, post)  \
-    if (interesting_level_number == -1)  \
+    { if (interesting_level_number == -1)  \
        return rc;\
     else \
-      return traceterm(trm, rc, pre, post);
+      return traceterm(trm, rc, pre, post);}
 
 
 
 #ifdef DTERMINAL
-int Dterminal_ (sterm)
-register char *sterm;
+int Dterminal_ (char *sterm) 
 {
-  register char *sp, *term, *rip = ip;
+  register char *term, *rip = ip;
   term = sterm;
   for (; *term != '\0'; rip++)
     if (*term++ != *rip)
@@ -43,9 +42,7 @@ register char *sterm;
 
 
 #ifdef DCHOICE
-int Dchoice_ (choice_set, D0)
-register char *choice_set;
-register AFFIX D0;
+int Dchoice_ (char *choice_set, AFFIX D0) 
 {
   register char *cp = choice_set;
   D0->t = c;
@@ -70,9 +67,7 @@ register AFFIX D0;
 #endif
 
 #ifdef DEX_CHOICE
-int Dex_choice (choice_set, D0)
-register char *choice_set;
-register AFFIX D0;
+int Dex_choice (char *choice_set, AFFIX D0) 
 {
   register char *cp = choice_set;
   D0->t = c;
@@ -98,9 +93,7 @@ register AFFIX D0;
 
 
 #ifdef DX_STAR_CHOICE
-int Dx_star_choice (choice_set, D0)
-register char *choice_set;
-register AFFIX D0;
+int Dx_star_choice (char *choice_set, AFFIX D0) 
 {
   register char *cp = choice_set;
   D0->t = c;
@@ -126,9 +119,7 @@ register AFFIX D0;
 #endif
 
 #ifdef DX_STAR_EX_CHOICE
-int Dx_star_ex_choice (choice_set, D0)
-register char *choice_set;
-register AFFIX D0;
+int Dx_star_ex_choice (char *choice_set, AFFIX D0) 
 {
   register char *cp = choice_set, *rip = ip;
   D0->t = c;
@@ -170,9 +161,7 @@ register AFFIX D0;
 
 
 #ifdef DX_PLUS_CHOICE
-int Dx_plus_choice (choice_set, D0)
-register char *choice_set;
-register AFFIX D0;
+int Dx_plus_choice (char *choice_set, AFFIX D0) 
 {
   register char *cp = choice_set, *sip = ip;
   D0->t = c;
@@ -199,9 +188,7 @@ register AFFIX D0;
 #endif
 
 #ifdef DX_PLUS_EX_CHOICE
-int Dx_plus_ex_choice (choice_set, D0)
-register char *choice_set;
-register AFFIX D0;
+int Dx_plus_ex_choice (char *choice_set, AFFIX D0) 
 {
   register char *cp = choice_set, *sip = ip;
   D0->t = c;

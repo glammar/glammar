@@ -70,14 +70,21 @@
 #define built_aliased          (long)   0X004000
 #define isvolatile             (long)   0X008000
 #define nonvolatile            (long)   0X010000
-#define freestacks_f           (long)   0X020000
-#define tail_recursion_opt_f    (long)  0X040000
-#define no_tail_recursion_opt_f (long)  0X080000
-#define is_predicate            (long)  0X100000
-#define not_a_predicate         (long)  0X200000
-#define redirected_input        (long)  0X400000
-#define generated_rule          (long)  0X800000
+#define is_predicate            (long)  0X020000
+#define not_a_predicate         (long)  0X040000
+#define generated_rule          (long)  0X100000
 
+/* FLAGS ast.x */
+#define metatermopt             (long)  0X01
+#define freestacks_f           (long)   0X02
+#define tail_recursion_opt_f    (long)  0X04
+#define no_tail_recursion_opt_f (long)  0X08
+#define redirected_input        (long)  0X10
+#define wasmeta                 (long)  0X20
+/* lattice affix of transform_lattice */
+#define transform_lattice_arg   (long)  0X40
+#define TRC_LATTICE          (long)  0X80
+#define TRC_ALIST            (long)  0X100
 
 
 #define meta_One  (long) 4
@@ -95,11 +102,18 @@
 #define affix_directed_parsing  (long) 2
 #define no_affix_directed_parsing  (long) 1
 
-#define maxnt     (long) 16384   /* absolute maximum */ 
-#define nearest_prime_maxnt    (long)  16381   
-#define MAX_CHARS  (long) 1000000  
-#define MAX_ITEMS  (long) 30000  
+#define maxnt     (long) 262144   /* absolute maximum */ 
+#define nearest_prime_maxnt    (long)  262051   
+#define MAX_CHARS  (long) 10000000  
+#define MAX_ITEMS  (long) 300000  
 
+/* These are fixed values, based on size of long in bits */
+/* Do not change */
+#define MAX_LATTICES_PER_GROUP  55
+#define MAX_LATTICE_GROUPS  254  /* max val of unsigned char -1 */
+#define MAX_LATTICE_GROUPS_DIGITS 4
+#define LATTICE_GROUP(node) (ast[node].g & 0xff)
+#define LATTICE_VAL(node) (ast[node].g >> (sizeof(long)*7))
 /* macros */
 
 #define NODENAME(node)      ast[node].n
@@ -110,6 +124,8 @@
 #define DEF(node)           ast[node].d
 #define LEFTDEF(node)       ast[node].d
 #define LINE(node)           ast[node].l
+#define GROUP(node)           ast[node].g
+#define LINEX(n,m)           LINE(n)?LINE(n):LINE(m)
 #define FLAGS(node)          ast[node].x
 
 #define MARKED(rule,value)   ((NODENAME (rule) & (value) ) != 0)
@@ -154,6 +170,7 @@
 #define ISNT_DONTCARE(node)  (ast[node].d != 9999999)
 
 #define PART(node)           ast[node].p
+#define PARTX(n,m)           PART(n)?PART(n):PART(m)
 #define SUM(node)           ast[node+1].n
 #define OLDSUM(node)           ast[node+1].b
 #define NEWSUM(node)           ast[node+1].s
@@ -176,7 +193,7 @@
 #include <string.h>
  typedef
 struct {
-   long n, b, s, d, l, x;
+   long n, b, s, d, l, x, g;
    char *r,*p;}
 AST;
 
@@ -205,3 +222,84 @@ AST;
 #define CCFLAGS " /NOWARN " 
 #endif
 
+long addname ();
+void choice_switch_statement_coder ();
+long close_symbol ();
+long consistentaffixtype (long def, long app);
+long conv_table ();
+long getnextchar ();
+long lattice_top (long afx);
+long lift_element (long mem);
+long lookahead_in_alt (long alt);
+long mystrcmp ( char *s1, char *s2);
+long name ();
+long name_display_mix ();
+long open_symbol ();
+long set_meta_affixes ();
+long set_volatile ();
+long skiplayout ();
+void skiptopoint_symbol ();
+long valid_overloaded_affixtype (long def, long app, long parent_app);
+void adp_walk ();
+void affixerrmsg (long original, long bad_copy);
+void affixes ();
+void affix_intermediate_defs (long mem);
+void affixuse ();
+void alloc_chartable ();
+void altdetnestarset (long alt);
+void better_index ();
+void check_metagrammar ();
+void code ();
+void code_includes ();
+void compile ();
+void compile_parts ();
+void compute_predicates ();
+void determ ();
+void det_rule_alts (long alt);
+void det_rule_head ();
+void det_rule_tail ();
+void dump_hash ();
+void eag ();
+void empty ();
+void errmsg (char *msg);
+void final_nestarset_removal ();
+void get_affixes (long affix, long count);
+void getfirstchar ();
+void get_stddefs ();
+void glm_options ();
+void hint_on_non_used_hyperrules (long local);
+void id_tree ();
+void ie ();
+void init_builtins ();
+void initnametable ();
+void lattice_defined (long rule, long alt, long trm);
+void lattice_used (long term, long alt);
+void left_rec ();
+void link_lattice ();
+void linktodefs ();
+void list ();
+void make_member (char *name);
+void memopt ();
+void mems_intermediate_defs (long mem);
+void meta2init ();
+void move_terms_up ();
+void newdefnode (long name, long brothers, long sons, long def, char *repr);
+void newnode (long name, long brothers, long sons, char *repr);
+void newrulenode (long name, long brothers, long sons, long line, char *part, char *repr);
+void nondet_code ();
+void parse_tree ();
+void print_cfg_tree ();
+void printtree ();
+void push_affixes (long affix, long count);
+void recursive_ ();
+void result_intermediate_defs (long alt);
+void rules (long ruletype);
+void statistic_table ();
+void tag_index ();
+void tail_rec_opt ();
+void trace ();
+void trace_code (long built_als,long affix);
+void tr_lattice ();
+void wheres ();
+void optimize_detnestarset (long alt);
+int same_lattice_not_already_encountered(long alt, long mem, long affix);

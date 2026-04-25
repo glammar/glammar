@@ -8,8 +8,7 @@
 */
 #include "ge1.h"
 #ifdef DPAIR
-int Dpair (A, C, D)             /* pair */
-register AFFIX A, C, D;
+int Dpair (AFFIX A, AFFIX C, AFFIX D) 
 {
   AFFIX B = ++af;
   A->t = c;
@@ -24,8 +23,7 @@ register AFFIX A, C, D;
 #endif
 
 #ifdef DUNPAIR
-int Dunpair (A, B, C)           /* lifted unpair */
-register AFFIX A, B, C;
+int Dunpair (AFFIX A, AFFIX B, AFFIX C) 
 {
   char *xs = c;
   AFFIX cell = 0;
@@ -47,8 +45,7 @@ register AFFIX A, B, C;
   return false;
 }
 
-int Dunpair2 (A, B, C)          /* lifted unpair */
-register AFFIX A, *B, *C;
+int Dunpair2 (AFFIX A, AFFIX *B, AFFIX *C) 
 {
   char *xs = c;
   AFFIX cell = 0;
@@ -63,8 +60,8 @@ register AFFIX A, *B, *C;
   GET_CELL_ADDR (cell, xs);
   if (cell)
   {
-    B = cell->l;
-    C = cell->r;
+    B = (AFFIX *)cell->l;
+    C = (AFFIX *)cell->r;
     return true;
   }
   return false;
@@ -72,8 +69,7 @@ register AFFIX A, *B, *C;
 #endif
 
 #ifdef DREPAIR
-int Drepair (A_0, A_1, A_2)     /* lifted unpair */
-register AFFIX A_0, A_1, A_2;
+int Drepair (AFFIX A_0, AFFIX A_1, AFFIX A_2) 
 {
   AFFIX cell = nil;
   register char *xs = c;
@@ -138,9 +134,7 @@ void Urepair ()
 #endif
 
 #ifdef DWHERE
-int Dwhere (A_0, A_1)           /* where */
-register AFFIX A_0;
-register AFFIX A_1;
+int Dwhere (AFFIX A_0, AFFIX A_1) 
 {
   MAKE (A_1, A_0);
   return true;
@@ -148,12 +142,11 @@ register AFFIX A_1;
 #endif
 
 #ifdef DEVALMETA
-int Devalmeta (A_0)
-register AFFIX A_0;
+int Devalmeta (AFFIX A_0) 
 {
   register char *rc = c;
   if (((A_0->r) == nil) && ((A_0->l) == nil))
-    return;
+    return true;
   else
   {
     sprinta (A_0);
@@ -171,7 +164,6 @@ void Uevalmeta ()
 {
   register cont *rq = q;
   register AFFIX A_0 = rq->a;
-  char *rc = c;
   q = rq - 2;
   if (((A_0->r) == nil) && ((A_0->l) == nil))
   {
@@ -204,9 +196,7 @@ void Uevalmeta ()
 #endif
 
 #ifdef DINITMETA
-int Dinitmeta (A_0, A_1)
-register AFFIX A_0;
-register AFFIX A_1;
+int Dinitmeta (AFFIX A_0, AFFIX A_1) 
 {
   A_0->t = "";
   A_0->r = A_1;
@@ -239,10 +229,7 @@ void Uinitmeta ()
 #ifdef DASSIGN
 extern AFFIX first_meta, last_meta;
 
-int Dassign (A_0, A_1, A_2)
-register AFFIX A_0;
-register AFFIX A_1;
-register AFFIX A_2;
+int Dassign (AFFIX A_0, AFFIX A_1, AFFIX A_2) 
 {
   A_2->t = A_0->t;
   A_2->r = A_0->r;

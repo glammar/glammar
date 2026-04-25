@@ -5,7 +5,7 @@
     and therefore subjected to the copy notice below. 
     
     Copyright (C) 1989,2012  Eric Voss, eric337@yahoo.com 
-
+*/
 /* 
  *  file  : trace builtins
  *                  
@@ -13,19 +13,31 @@
 
 #include "gg1.h"
 #include "gg2.h"
-static int builtin;
-extern int resetinputptr;
-extern int nestaralt;
-static int new_rule;
+static long builtin;
+extern long resetinputptr;
+extern long nestaralt;
+static long new_rule;
 
-trace ()
+
+/* exports
+void trace ();
+void make_member (char *name);
+*/
+static long builtin_used ();
+static void alias_used_builtins ();
+static void make_new_rule (long b);
+static void make_affix_tree (long afx);
+static void make_alt (long alt);
+static void make_rule (long b);
+
+void trace () 
 {
   alias_used_builtins ();
 }
 
-builtin_used ()
+static long builtin_used () 
 {
-  int rule, alt, mem;
+  long rule, alt, mem;
   for (rule = root; rule != laststdpred; rule = BROTHER (rule))
     for (alt = SON (rule); alt != nil; alt = BROTHER (alt))
       for (mem = SON (alt); mem != nil; mem = BROTHER (mem))
@@ -35,19 +47,22 @@ builtin_used ()
 }
 
 
-alias_used_builtins ()
+static void alias_used_builtins () 
 {
-  int rule, one_builtin_used = false;
+  long rule, one_builtin_used = false;
   brother = laststdpred;
   for (builtin = laststdpred; builtin != nil; builtin = BROTHER (builtin))
     if ((builtin != cut) && (builtin != nestarset) &&
         (!mystrcmp (REPR (builtin), "select")) &&
+        (!mystrcmp (REPR (builtin), "delete")) &&
         (builtin != tltraditionalterm) &&
         (builtin != transformlatticeterm) &&
         (builtin != tltraditional) &&
+        (builtin != init_one_star) &&
         (builtin != transformlattice) &&
         (builtin != skip) &&
         (builtin != explintersect) &&
+        (builtin != intersect) &&
         (builtin != getip) &&
         (builtin != falseip) &&
         (builtin != restoreip) &&
@@ -55,7 +70,7 @@ alias_used_builtins ()
         (builtin != initmeta) &&
         (builtin != evalmeta) && (builtin != resetinputptr) && (builtin != nestaralt) && (builtin != where))
     {
-      int mem, alt;
+      long mem, alt;
       char *n, *m = REPR (builtin);
       if (!builtin_used ())
         continue;
@@ -89,7 +104,7 @@ alias_used_builtins ()
   BROTHER (rule) = new_rule;
 }
 
-make_new_rule (b)
+static void make_new_rule (long b)
 {
   brother = nil;
   make_affix_tree (AFFIXDEF (SON (builtin)));
@@ -98,37 +113,42 @@ make_new_rule (b)
   make_rule (b);
 }
 
-make_affix_tree (afx)
+#define LATtice "LATTICE"
+#define ALIst  "ALIST"
+static void make_affix_tree (long afx)
 {
-  int sbrother;
+  long sbrother;
+  char *repr;
   if (afx == nil)
   {
     return;
   }
+  repr= REPR(SON(afx));
   make_affix_tree (BROTHER (afx));
   sbrother = brother;
   newnode (affixnt, nil, nil, REPR (SON (afx)));
+  if (!strncmp(repr, LATtice, sizeof(LATtice)-1))
+     FLAG_SET(afx, TRC_LATTICE);
+  else if (!strncmp(repr, ALIst, sizeof(ALIst)-1))
+     FLAG_SET(afx, TRC_ALIST);
   newnode (NODENAME (afx), sbrother, brother, "(nil)");
 }
 
-make_member (name)
-char *name;
+void make_member (char *name) 
 {
   newnode (ntnode, nil, brother, name);
   DEF (brother) = builtin;
 }
 
-make_alt (alt)
-int alt;
+static void make_alt (long alt) 
 {
-  int sons = brother;
+  long sons = brother;
   brother = nil;
   make_affix_tree (AFFIXDEF (alt));
   newnode (brother, nil, sons, REPR (builtin));
 }
 
-make_rule (b)
-int b;
+static void make_rule (long b) 
 {
   newrulenode (NODENAME (builtin), b, brother, LINE (builtin), PART (builtin), REPR (builtin));
   if (MARKED (root, docompile))

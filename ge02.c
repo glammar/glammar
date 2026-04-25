@@ -8,12 +8,11 @@
 */
 #include "ge1.h"
 #ifdef    DDEQUAL
-int Dequalsempty ();
-int Ddequal (A, B)              /* lifted equal */
-register AFFIX A, B;
+int Ddequal (AFFIX A, AFFIX B) 
 {
   char *xs = c;
   char *ys;
+  
   if (A == B)
     return true;
   else if (!*(A->t) && A->r == nil && A->l == nil)
@@ -42,8 +41,7 @@ register AFFIX A, B;
 #endif
 
 #ifdef         DEQUAL
-int Dequal (A, B)               /* lifted not equal */
-register AFFIX A, B;
+int Dequal (AFFIX A, AFFIX B) 
 {
   register char *rc = c;
   if (Ddequal (A, B))
@@ -58,8 +56,7 @@ register AFFIX A, B;
 
 }
 
-int Dequalsempty (A)
-register AFFIX A;
+int Dequalsempty (AFFIX A) 
 {
   if (A == nil)
     return true;
@@ -73,16 +70,14 @@ register AFFIX A;
 GLAMMAR_Q1 (Dequalsempty, Uequalsempty)
 #endif
 #ifdef DNOTEQUAL
-int Dnotequal (A, B)            /* lifted not equal */
-register AFFIX A, B;
+int Dnotequal (AFFIX A, AFFIX B) 
 {
   return !Dequal (A, B);
 }
 #endif
 
 #ifdef DDFQUAL
-int Ddfqual (A, B)              /* lifted equal */
-register AFFIX A, B;
+int Ddfqual (AFFIX A, AFFIX B) 
 {
   register char *xs = c, *ys;
   if (A == B)
@@ -113,8 +108,7 @@ register AFFIX A, B;
 #endif
 
 #ifdef   DFQUAL
-int Dfqual (A, B)               /* lifted not equal */
-register AFFIX A, B;
+int Dfqual (AFFIX A, AFFIX B) 
 {
   register char *rc = c;
   if (Ddfqual (A, B))
@@ -131,16 +125,14 @@ register AFFIX A, B;
 #endif
 
 #ifdef DFOTEQUAL
-int Dfotequal (A, B)            /* lifted not equal */
-register AFFIX A, B;
+int Dfotequal (AFFIX A, AFFIX B) 
 {
   return !Dfqual (A, B);
 }
 #endif
 
 #ifdef DCOMPARE
-int Dcompare (A, B, tailx, taily)       /* compare */
-register AFFIX A, B, tailx, taily;
+int Dcompare (AFFIX A, AFFIX B, AFFIX tailx, AFFIX taily) 
 {
   register char *xs = c, *ys;
   if ((A->r == nil) && (A->l == nil))
@@ -158,7 +150,7 @@ register AFFIX A, B, tailx, taily;
     sprinta (B);
     *c++ = '\0';
   }
-  while ((*xs == *ys++))
+  while (*xs == *ys++)
     if (*xs++ == '\0')
     {
       ASSIGN (tailx, empty, nil, nil);
@@ -197,8 +189,7 @@ void Ulinenum ()
 #endif
 
 #ifdef DLINENUM
-int Dlinenum (D_0)
-register affix *D_0;
+int Dlinenum (affix *D_0) 
 {
   register char *rip = set_line_pos, *tip = ip;
   int line = set_line_num;
@@ -221,7 +212,7 @@ register affix *D_0;
   while (rip < tip)
     if (*rip++ == '\n')
       line += 1;
-  (void) sprintf (c, "%d\0", line);
+  (void) sprintf (c, "%d", line);
   set_line_pos = tip;
   set_line_num = line;
   c[7] = '\0';

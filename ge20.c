@@ -6,30 +6,30 @@
     
     Copyright (C) 1989,2012  Eric Voss, eric337@yahoo.com 
 */
-#ifdef SUN
+#ifdef LINUX64
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
 
 #include "ge1.h"
 #ifdef SET_AND_TEST_LIMITS
-afx_overflow ()
+void afx_overflow () 
 {
   fprintf (stderr, "%s: Affix heap overflow.\n\
- Hard Limit was %d bytes.\n\
+ Hard Limit was %ld bytes.\n\
  Increase with -hn (n=1 = 6Mb, n=2 =12Mb, ...);\n", arg_zero, (char *) afx_top - (char *) affix_heap);
   exit (1);
 }
 
-need_more_qstack ()
+void need_more_qstack () 
 {
   fprintf (stderr, "%s: Continuation stack overflow.\n\
- Hard Limit was %d bytes.\n\
+ Hard Limit was %ld bytes.\n\
  Increase with -qn (n=1 = 100Kb, n=2 =200Kb, ...);\n", arg_zero, q_size);
   exit (1);
 }
 
-cstore_overflow ()
+void cstore_overflow () 
 {
   fprintf (stderr, "%s: Char store overflow.\n\
  Hard Limit was %ld bytes.\n\
@@ -37,10 +37,9 @@ cstore_overflow ()
   exit (1);
 }
 
-void set_and_test_limits (stk_size, memo_flag)
-int stk_size, memo_flag;
+void set_and_test_limits (int stk_size, int memo_flag) 
 {
-#ifdef SUN
+#ifdef LINUX64 
   {
     struct rlimit lmts;
 
@@ -63,7 +62,7 @@ int stk_size, memo_flag;
   if (memo_flag)
     if (nrofchars > runtime_input_size - 4)
     {
-      fprintf (stderr, "%s: Input size too large (max %d chars)\n", arg_zero, runtime_input_size - 4);
+      fprintf (stderr, "%s: Input size too large (max %ld chars)\n", arg_zero, runtime_input_size - 4);
       exit (1);
     }
 }
@@ -73,7 +72,29 @@ int stk_size, memo_flag;
 char *nt_cbuf[128];
 int nt_idx = 0;
 
-int nt_name_push (char *nt_name)
+void trc_linenr(void)
+{
+ if (ip <= limitip && ip >= input)
+ {
+  register char *rip = set_line_pos;
+  int line = set_line_num;
+
+  while (rip < ip)
+    if (*rip++ == '\n')
+      line += 1;
+  while (rip > ip)
+    if (*rip-- == '\n')
+      line -= 1;
+  fprintf( stdout, ": %d\n", line);
+  set_line_num =  line;
+  set_line_pos =  rip;
+ }
+ else 
+    fputs("(input redirected)\n", stdout); 
+}
+void traceinput(int end);
+
+int nt_name_push (char *nt_name) 
 {
   if (nt_cbuf[(nt_idx) & 127] == nt_name)
     return 0;
@@ -82,48 +103,50 @@ int nt_name_push (char *nt_name)
   return 1;
 }
 
-int nt_name_ipop (int pushed)
+int nt_name_ipop (int pushed )
 {
   if (pushed && nt_cbuf[(nt_idx & 127)])
     nt_cbuf[(nt_idx--) & 127] = 0;
+  return 1;
 }
 
-char *nt_name_pop (int pushed)
+char *nt_name_pop (int pushed )
 {
   char *r;
-  if (r = nt_cbuf[(nt_idx & 127)])
+  if ((r = nt_cbuf[(nt_idx & 127)]))
     nt_cbuf[(nt_idx--) & 127] = 0;
   return r;
 }
 
 int last_trace_index;
-char *spaces = "                                ";
-int begin1_trace (ntname)
-char *ntname;
+char *spaces = "                                                                                                                                ";
+int begin1_trace (char *ntname) 
 {
   if (interesting_level_number != -1 && level >= interesting_level_number)
   {
-    int id = (q - q_stack) >> 2;
-    char *ids = spaces + 32 - (id & 31);
+    int id = (q - q_stack) >> 3;
+    char *ids = spaces + 128 - (id*2 & 127);
     if (id > 0)
       fprintf (stdout, "%d ", id);
     if (pntname != lastpntname)
     {
-      fprintf (stdout, "%d %s%.40s<-%.12s ", level, ids, ntname, pntname);
+      fprintf (stdout, "%ld %s%.60s<-%.12s ", level, ids, ntname, pntname);
       lastpntname = pntname;
     }
     else
-      fprintf (stdout, "%d %s%.40s ", level, ids, ntname);
+      fprintf (stdout, "%ld %s%.60s ", level, ids, ntname);
     if (!memcmp (ntname, "setinputptrto_", sizeof ("setinputptrto_") - 1))
-      fprintf (stdout, "%ld ", c);
+      fprintf (stdout, "%p ", c);
 
     fflush (stdout);
   }
   pntname = ntname;
+ return 0;
 }
 
 void begin2_trace ()
 {
+  char lb[100];
   if (interesting_level_number == -1)
     return;
   if (level > interesting_level_number)
@@ -142,8 +165,17 @@ void begin2_trace ()
       fprintf (stdout, "EOF\n");
       return;
     }
+    traceinput(10);
+    trc_linenr();
+    fflush (stdout);
+  }
+}
+
+void traceinput(int end)
+{ 
+    int i;
     fputc ('\'', stdout);
-    for (i = 0; i < 10 && ip[i]; i++)
+    for (i = 0; i < end  && ip[i]; i++)
     {
       if (isprint (ip[i]))
       {
@@ -177,17 +209,23 @@ void begin2_trace ()
       fprintf (stdout, "\\%3o", ip[i]);
     }
     fputc ('\'', stdout);
-    fputc ('\n', stdout);
-    fflush (stdout);
+}
+int try_trace_list_affix (int, int, AFFIX);
+
+void trace_lattice (AFFIX afx) 
+{
+
+  if (interesting_level_number == -1)
+    return;
+  if (afx == nil)
+    return;
+  if (level > interesting_level_number)
+  {
+    printf ("{%lX}", (long)afx->t);
   }
 }
 
-int try_trace_list_affix (int, int, AFFIX);
-void printa ();
-
-
-void trace_affix (builtin_affix, afx)
-register AFFIX afx;
+void trace_affix (int builtin_affix, AFFIX afx) 
 {
   int trace_level_affix = builtin_affix ? 3 : 9;
 
@@ -204,9 +242,7 @@ register AFFIX afx;
   }
 }
 
-void int_trace_affix (paren, n, afx)
-int paren, n;
-register AFFIX afx;
+void int_trace_affix (int paren, int n, AFFIX afx) 
 {
   if (afx == nil)
     return;
@@ -215,9 +251,7 @@ register AFFIX afx;
     printa (stdout, afx);
 }
 
-int try_trace_list_affix (paren, n, A)
-int paren, n;
-register AFFIX A;
+int try_trace_list_affix (int paren, int n, AFFIX A) 
 {
   affix *cell = (affix *) - 1;
 
@@ -248,19 +282,15 @@ register AFFIX A;
 }
 
 
-int traceterm (term, rc, pre, post)
-char *term;
-int rc;
-char *pre;
-char *post;
+int traceterm (char *term, int rc, char *pre, char *post) 
 {
 
   if (interesting_level_number == -1)
     return rc;
   if (level > interesting_level_number)
   {
-    int id = (q - q_stack) >> 2;
-    char *ids = spaces + 32 - (id & 31);
+    int id = (q - q_stack) >> 3;
+    char *ids = spaces + 128 - (id*2 & 127);
     char eterm[2001];
     char *ec = eterm;
     char *tc = term;
@@ -294,21 +324,22 @@ char *post;
       fprintf (stdout, "%d ", id);
     if (rc)
     {
-      fprintf (stdout, "%d +%s%s%s%s\n", level, ids, pre, eterm, post);
+      fprintf (stdout, "%ld +%s%s%s%s\n", level, ids, pre, eterm, post);
     }
     else
     {
-      fprintf (stdout, "%d -%s%s%s%s\n", level, ids, pre, eterm, post);
+      int end = strlen(eterm);
+      fprintf (stdout, "%ld -%s%s%s%s <", level, ids, pre, eterm, post);
+      traceinput(end>10?end:10);
+      trc_linenr();
+       
     }
     fflush (stdout);
   }
   return rc;
 }
 
-endtrace (pct, pntsave, ntname)
-char *pntsave;
-char *ntname;
-int pct;
+long endtrace (int pct, char *pntsave, char *ntname) 
 {
   if (interesting_level_number == -1)
   {
@@ -332,41 +363,40 @@ int pct;
       }
     }
     pntname = pntsave;
-    return;
+    return 0;
   }
   if (level > interesting_level_number)
   {
-    int id = (q - q_stack) >> 2;
-    char *ids = spaces + 32 - (id & 31);
+    int id = (q - q_stack) >> 3;
+    char *ids = spaces + 128 - (id*2 & 127);
     char *pt = pntsave;
     if (id > 0)
       fprintf (stdout, "%d ", id);
     if (pct == parsecount)
     {
       if ((ip > limitip) || (ip < input))
-        fprintf (stdout, "%d %s<-- %s.%s \n", level, ids, ntname, pt);
+        fprintf (stdout, "%ld %s<-- %s.%s \n", level, ids, ntname, pt);
       else if (*ip != '\0')
-        fprintf (stdout, "%d %s<-- %s.%s %ld,%ld\n", level, ids, ntname, pt, mip - input, ip - input);
+        fprintf (stdout, "%ld %s<-- %s.%s %ld,%ld\n", level, ids, ntname, pt, mip - input, ip - input);
       else
-        fprintf (stdout, "%d %s<-- %s.%s EOF\n", level, ids, ntname, pt);
+        fprintf (stdout, "%ld %s<-- %s.%s EOF\n", level, ids, ntname, pt);
     }
     else
     {
       if ((ip > limitip) || (ip < input))
-        fprintf (stdout, "%d %s<++ %s.%s META \n", level, ids, ntname, pt);
+        fprintf (stdout, "%ld %s<++ %s.%s META \n", level, ids, ntname, pt);
       else if (*ip != '\0')
-        fprintf (stdout, "%d %s<++ %s.%s %ld,%ld \n", level, ids, ntname, pt, mip - input, ip - input);
+        fprintf (stdout, "%ld %s<++ %s.%s %ld,%ld \n", level, ids, ntname, pt, mip - input, ip - input);
       else
-        fprintf (stdout, "%d %s<++ %s.%s EOF\n", level, ids, ntname, pt);
+        fprintf (stdout, "%ld %s<++ %s.%s EOF\n", level, ids, ntname, pt);
     }
     fflush (stdout);
   }
   pntname = pntsave;
+  return 0;
 }
 
-void ambiguous_trace (pct, act, ntname)
-char *ntname;
-int *pct, *act;
+void ambiguous_trace (int *pct, int *act, char *ntname) 
 {
   if (*pct < parsecount)
   {

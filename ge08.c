@@ -100,8 +100,10 @@ void Udetnestarset ()
     while (rip < ip)
       *c++ = *rip++;
     *c++ = '\0';
+    ip += strlen(term);
     q = rq + -3;
     (*(rq + -2)->q) ();
+   ip = pip;
   }
   c = rc;
   ip = sip;
@@ -137,10 +139,12 @@ void Unestaralt_ ()
   q = rq + 1;
 }
 
-GLAMMAR_Q3 (Ddetprefix, Udetprefix) GLAMMAR_Q3 (Ddetprefix2_, Udetprefix2_)
+GLAMMAR_Q3 (Ddetprefix, Udetprefix) 
+GLAMMAR_Q3 (Ddetprefix2_, Udetprefix2_)
+GLAMMAR_Q1 (Dgetlist_, Ugetlist_)
+GLAMMAR_Q3 (Dgetlastlist_, Ugetlastlist_) 
 #endif
 #ifdef UWAS
-                                        GLAMMAR_Q1 (Dgetlist_, Ugetlist_)
 GLAMMAR_Q1 (Dwas, Uwas) GLAMMAR_Q1 (Dwas10, Uwas10) GLAMMAR_Q1 (Dwas100, Uwas100) GLAMMAR_Q1 (Dwas1000, Uwas1000)
 #endif /* UWAS */
 #ifdef UNESTARSET
@@ -168,11 +172,6 @@ void Unestarset ()
         rc[3] = rip[3];
         rc[4] = rip[4];
         rc[5] = rip[5];
-#ifndef EIGHT_BYTE_ADDR
-        rc[6] = '\0';
-        ip += 5;
-        c += 7;
-#else
         rc[6] = rip[6];
         rc[7] = rip[7];
         rc[8] = rip[8];
@@ -180,7 +179,6 @@ void Unestarset ()
         rc[10] = '\0';
         ip += 9;
         c += 11;
-#endif
       }
       else
       {
@@ -234,9 +232,7 @@ void Umetaterminal ()
 GLAMMAR_Q2 (Dmetaterminal2_, Umetaterminal2_)
 #endif
 #ifdef DSETINPUTPTRTO
-int Dsetinputptrto_ (IP, A_0)
-register AFFIX A_0;
-register AFFIX IP;
+int Dsetinputptrto_ (AFFIX IP, AFFIX A_0) 
 {
   if (ip >= ipstart && ip <= ipend)
     ipln = ip;
@@ -262,8 +258,7 @@ register AFFIX IP;
 
 #ifdef DRESETINPUTPTR
 #include <strings.h>
-int Dresetinputptr_ (A_0)
-register AFFIX A_0;
+int Dresetinputptr_ (AFFIX A_0) 
 {
   if (*ip != '\0')
     return false;
@@ -271,24 +266,16 @@ register AFFIX A_0;
   return true;
 }
 
-int Ddetprefix (A_2, A_1, A_0)
-register AFFIX A_2;
-register AFFIX A_1;
-register AFFIX A_0;
+int Ddetprefix (AFFIX A_2, AFFIX A_1, AFFIX A_0) 
 {
   register char *term, *te, *rip, *re;
-  term = A_0->t;
-  if (((A_0->r) == nil) && ((A_0->l) == nil))
-  {
-    for (te = term; *te; te++);
-  }
-  else
-  {
-    term = c;
-    sprinta (A_0);
-    te = c;
-    *c++ = '\0';
-  }
+  *c++ = '\0';
+  term = c;
+  sprinta (A_0);
+  te = c;
+  *c++ = '\0';
+  if (c  > cstore_top)
+      cstore_overflow ();
   if (term == te)
   {
     COPY (A_1, A_2);
@@ -298,6 +285,8 @@ register AFFIX A_0;
   sprinta (A_2);
   re = c;
   *c++ = '\0';
+  if (c  > cstore_top)
+      cstore_overflow ();
 
   if (re - rip < te - term)
     return false;
@@ -321,27 +310,16 @@ register AFFIX A_0;
   return true;
 }
 
-int Ddetprefix2_ (A_2, A_1, A_0)
-register AFFIX A_2;
-register AFFIX A_1;
-register AFFIX A_0;
+int Ddetprefix2_ (AFFIX A_2, AFFIX A_1, AFFIX A_0) 
 {
   register char *term, *te, *rip, *ipe;
   long szi, szt, len;
   char *rc = c;
 
-  term = A_0->t;
-  if (((A_0->r) == nil) && ((A_0->l) == nil))
-  {
-    for (te = term; *te; te++);
-  }
-  else
-  {
-    term = c;
-    sprinta (A_0);
-    te = c;
-    *c++ = '\0';
-  }
+  term = c;
+  sprinta (A_0);
+  te = c;
+  *c++ = '\0';
   if (term == te)
   {
     A_1->t = ip;
@@ -380,7 +358,11 @@ register AFFIX A_0;
   {
     rc = c;
     while (rip < ipe)
+    {
       *c++ = *rip++;
+      if (c  > cstore_top)
+        cstore_overflow ();
+    }
     *c++ = 0;
     A_1->t = rc;
     A_1->r = nil;
@@ -391,9 +373,7 @@ register AFFIX A_0;
   return false;
 }
 
-int Ddetnestarset (A_1, A_0)
-register AFFIX A_1;
-register AFFIX A_0;
+int Ddetnestarset (AFFIX A_1, AFFIX A_0) 
 {
   register char *term, *rip = ip;
   term = A_0->t;
@@ -414,16 +394,19 @@ register AFFIX A_0;
   A_1->r = nil;
   A_1->l = nil;
   while (rip < ip)
+  {
     *c++ = *rip++;
+      if (c  > cstore_top)
+        cstore_overflow ();
+  }
   *c++ = '\0';
+  ip += strlen(term);
   return true;
 
 }
 #endif
 #ifdef DNESTARALT
-int Dnestaralt_ (A_0, A_1)
-register AFFIX A_0;
-register AFFIX A_1;
+int Dnestaralt_ (AFFIX A_0, AFFIX A_1) 
 {
   A_0->t = ip;
   A_0->r = nil;
@@ -432,17 +415,64 @@ register AFFIX A_1;
   return true;
 }
 
-
-int Dgetlist_ (A_0)             /* dumpaffix */
-register AFFIX A_0;
+int Dgetlastlist_ (AFFIX A_0,AFFIX A_1, AFFIX A_2) 
 {
-  AFFIX _affix = A_0;
+  char *rc = c, *rip = ip, *last_rc;
+  int cnt = 0;
+  A_1->t = rc;
+  A_1->r = nil;
+  A_1->l = nil;
+  A_0->r = nil;
+  A_0->l = nil;
+  while  (*rip == '\001')
+  {
+    if (rc +12 > cstore_top)
+      cstore_overflow ();
+    if (cnt && ip[9]  == '\001' && !ip[10])
+    {
+        *rc++ = '\0';
+    }
+    rc[0] = rip[0];
+    rc[1] = rip[1];
+    rc[2] = rip[2];
+    rc[3] = rip[3];
+    rc[4] = rip[4];
+    rc[5] = rip[5];
+    rc[6] = rip[6];
+    rc[7] = rip[7];
+    rc[8] = rip[8];
+    rc[9] = rip[9];
+    rip += 10;
+    last_rc = rc;
+    rc += 10;
+    cnt += 1 ;
+  }
+  if (!cnt || *rip) 
+     return false;
+  ip = A_2->t;
+  if (cnt == 1) 
+  {
+    A_0->t = empty;
+    *rc++ = '\0';
+    c = rc;
+    return true;
+  }
+  A_0->t = c;
+  A_1->t = last_rc;
+  c = rc;
+  return true; 
+}
+
+int Dgetlist_ (AFFIX A_0) 
+{
   char *rc = c, *rip = ip;
   A_0->t = rc;
   A_0->r = nil;
   A_0->l = nil;
   if (*ip == '\001')
   {
+    if (rc +12 > cstore_top)
+      cstore_overflow ();
     rc[0] = rip[0];
     rc[1] = rip[1];
     rc[2] = rip[2];
@@ -456,8 +486,6 @@ register AFFIX A_0;
     rc[10] = '\0';
     ip += 10;
     c += 11;
-    if (c > cstore_top)
-      cstore_overflow ();
     return true;
   }
   return false;
@@ -465,8 +493,7 @@ register AFFIX A_0;
 #endif
 
 #ifdef DMETATERMINAL
-int Dmetaterminal (A_0)
-register AFFIX A_0;
+int Dmetaterminal (AFFIX A_0) 
 {
   register char *term, *rip = ip;
   term = A_0->t;
@@ -486,9 +513,7 @@ register AFFIX A_0;
   return true;
 }
 
-int Dmetaterminal2_ (A_0, A_1)
-register AFFIX A_0;
-register AFFIX A_1;
+int Dmetaterminal2_ (AFFIX A_0, AFFIX A_1) 
 {
   register char *term, *rip = ip;
   term = A_0->t;
@@ -515,8 +540,7 @@ register AFFIX A_1;
 
 
 #ifdef DWAS
-int Dwas (afx)
-register AFFIX afx;
+int Dwas (AFFIX afx) 
 {
   *c = *(ip - 1);
   afx->t = c++;
@@ -526,11 +550,8 @@ register AFFIX afx;
   return true;
 }
 
-int Xwas (nr, afx)
-int nr;
-register AFFIX afx;
+int Xwas (int nr, AFFIX afx) 
 {
-  affix ax;
   char *i, sv, *rs, *rd;
   int j;
   afx->r = nil;
@@ -562,20 +583,17 @@ register AFFIX afx;
   return true;
 }
 
-int Dwas10 (afx)
-register AFFIX afx;
+int Dwas10 (AFFIX afx) 
 {
   return Xwas (10, afx);
 }
 
-int Dwas100 (afx)
-register AFFIX afx;
+int Dwas100 (AFFIX afx) 
 {
   return Xwas (100, afx);
 }
 
-int Dwas1000 (afx)
-register AFFIX afx;
+int Dwas1000 (AFFIX afx) 
 {
   return Xwas (1000, afx);
 }
@@ -583,8 +601,7 @@ register AFFIX afx;
 
 #ifdef DFIND
 #include <strings.h>
-int Dfind (A_0)
-register AFFIX A_0;
+int Dfind (AFFIX A_0) 
 {
   register char *term, *rip;
   term = A_0->t;
@@ -596,7 +613,7 @@ register AFFIX A_0;
     sprinta (A_0);
     *c++ = '\0';
   }
-  if (rip = strstr (ip, term))
+  if ((rip = strstr (ip, term)))
   {
     ip = rip;
     return true;

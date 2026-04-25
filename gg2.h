@@ -21,7 +21,7 @@
 /* file gg1.h : external definitions */
 
 extern AST     *ast;
-extern int      astindex,
+extern long      astindex,
                 brother,
                 root,
                 startnode,
@@ -43,14 +43,14 @@ extern char     thispart[256],
               **nametable,
                *chartable,
                 hack_dir[256];
-extern int      charindex,
+extern long      charindex,
                 hashindex,
                 prevcharindex,
                 usefullerrmsg,
                 underscore_allowed,
                 syntaxerrors,
                 line;
-extern int      NtCount,
+extern long      NtCount,
                 RuleCount,
                 nrterms,
                 nrntmems,
@@ -65,14 +65,14 @@ extern FILE    *output,
                *partlist,
                *indexfile,
                *tagindexfile;
-extern int      ulhs,
+extern long      ulhs,
                 reccount,
                 lastsettype,
                 PartNr,
                 RuleNr,
                 qCount,
                 aCount;
-extern int      AM_flag,
+extern long      AM_flag,
                 memo_flag,
                 index_flag,
                 tagindex_flag,
@@ -81,32 +81,32 @@ extern int      AM_flag,
                 input_from_stdin;
 extern long     runtime_stksize,
                 runtime_input_size;
-extern int      det_flag,
+extern long      det_flag,
                 lift_flag,
                 ambiguous_flag,
                 noerrmsg_flag,
                 no_recursion_elm_flag,
                 tree_flag,
                 hack_flag;
-extern int      verbose_flag,
+extern long      verbose_flag,
                 backtrace_mark,
                 affix_trace,
                 name_clashes;
-extern int      nestarset,
+extern long      nestarset,
                 metaterminal,
                 metaterminal2;
-extern int      memopt_flag,
+extern long      memopt_flag,
                 eag_flag,
                 syntax_flag,
                 errormsg_flag,
                 cfg_flag;
-extern int      stat_flag,
+extern long      stat_flag,
                 fullstat_flag,
                 trace_flag,
                 fulltrace_flag;
-unsigned        max_item,
+extern long     max_item,
                 maxchars;
-extern int
+extern long
                 tltraditionalterm,
                 transformlatticeterm,
                 tltraditional,
@@ -135,26 +135,27 @@ extern int
                 where,
                 initmeta,
                 getlist_,
+                getlastlist_,
                 initmint,
                 evalmeta;
-extern int      separate_comp_flag,
+extern long      separate_comp_flag,
                 link_flag,
                 meta_uniq_flag,
                 lat_trad_flag;
 extern char     parts[],
                *partptr;
-extern int      max_group,
+extern long      max_group,
                 nr_names,
                 init_sum,
                 nr_of_memo_alts,
                 symbol_table_size,
                 sum;
-extern int      parse_tree_flag,
+extern long      parse_tree_flag,
                 id_tree_flag,
                 all_external_flag,
                 start_predicate_flag,
                 afx_opt_flag;
-extern int      endofsentence,
+extern long      endofsentence,
                 nestaralt,
                 detnestarset,
                 detprefix,
@@ -166,4 +167,5 @@ extern int      endofsentence,
 extern char     dirsep[];
 
 
+extern char repr_group[MAX_LATTICE_GROUPS][MAX_LATTICE_GROUPS_DIGITS];
 char *full_repr(char *s);

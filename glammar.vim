@@ -11,11 +11,16 @@ syn clear
 
 
 " Strings and characters:
-syn region glammarString	start=+{+hs=s+1  skip=+\\}+  end=+}+he=e-1
-syn region glammarString	start=+!+hs=s+1  skip=+\\!+  end=+!+he=e-1
+syn region glammarSet	start=+{+hs=s+1  skip=+\\}+  end=+}+he=e-1
+syn region glammarSet	start=+!+hs=s+1  skip=+\\!+  end=+!+he=e-1
 syn region glammarString	start=+"+hs=s+1  skip=+\\.+  end=+"+he=e-1
-syn match  glammarD             "\([*+ ]\|\i\)\+>\()\|,\)"he=e-1
-syn match  glammarI             ">[*+A-Za-z0-9 ]\+"hs=s+1
+syn region glammarDisplay start=+(+hs=s+1 end=+)+he=e-1 contains=glammarI,glammarString
+"syn region glammarDisplay start=+(+hs=s+1 end=+)+ contains=glammarI,glammarD
+"syn region glammarDisplay start=+(+hs=s+1 end=+)+ contains=glammarI,glammarD
+"syn region glammarI	start=+>\s*\("\|\i\)+hs=s+1   end=+,\|)+he=e-1 contained contains=glammarString
+"syn region glammarD	start=+\s*\(\i\|"\)+   end=+>+he=e-1 contained contains=glammarString
+"syn match  glammarD             "\([*+ ]\|\i\)\+>\()\|,\)"he=e-1
+syn match  glammarI             ">[*+A-Za-z0-9 ]\+"
 syn region glammarI		start=+\[+hs=s+1   end=+]+he=e-1
 
 
@@ -38,8 +43,9 @@ syn sync ccomment glammarComment
   hi link glammarSpecial	Special
   hi link glammarStatement	Statement
   hi link glammarString	String
-  hi link glammarType	Type
-  hi link glammarI	Special
+  hi link glammarSet	String
+  hi link glammarDisplay	Type
+  hi link glammarI	Macro
   hi link glammarD	Macro
 "endif
 

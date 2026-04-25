@@ -1,24 +1,99 @@
 
 /*
 
-    This file is a part of the GLAMMAR source distribution 
-    and therefore subjected to the copy notice below. 
-    
-    Copyright (C) 1989,2012  Eric Voss, eric337@yahoo.coml 
+   This file is a part of the GLAMMAR source distribution 
+   and therefore subjected to the copy notice below. 
 
-/* file  abstract syntax tree    */
+   Copyright (C) 1989,2012  Eric Voss, eric337@yahoo.coml 
+
+   file  abstract syntax tree    */
 #include "gg1.h"
 #include "gg2.h"
 
-int optlefthsd = 0, dfa, last_lattice = nil, firstnode = nil;
+long optlefthsd = 0, dfa, last_lattice = nil, firstnode = nil;
 
 char *cur_part_name;
 char *part_file;
 
 char inputfilename[256];
-compile ()
+
+/* exports
+   long close_symbol ();
+   long consistentaffixtype (long def, long app);
+   long getnextchar ();
+   long open_symbol ();
+   long skiplayout ();
+   long valid_overloaded_affixtype (long def, long app, long parent_app);
+   void affixerrmsg (long original, long bad_copy);
+   void affixes ();
+   void errmsg (char *msg);
+   void getfirstchar ();
+   void newdefnode (long name, long brothers, long sons, long def, char *repr);
+   void newnode (long name, long brothers, long sons, char *repr);
+   void newrulenode (long name, long brothers, long sons, long line, char *part, char *repr);
+   void rules (long ruletype);
+   void skiptopoint_symbol ();
+   */
+
+static long abstractionrule ();
+static long affixpr ();
+static long comma_symbol ();
+static long complement_symbol ();
+static long cut_symbol ();
+static long define_symbol (long *l_g);
+static long display ();
+static long dontcare ();
+static long dontcare2 ();
+static long dontcare_symbol ();
+static long fact_symbol ();
+static long flow_symbol ();
+static long goon_symbol ();
+static long ismetarule (long *type);
+static long latticerule ();
+static long lattice_symbol ();
+static long meta_alts ();
+static long metarule (long ruletype);
+static long meta_terms ();
+static long morelongset ();
+static long moreset ();
+static long negate_symbol ();
+static long numberrule ();
+static long plus_symbol ();
+static long point_symbol ();
+static long pos_symbol ();
+static long sequenceroption ();
+static long set ();
+static long square_close_symbol ();
+static long square_open_symbol ();
+static long startspecification ();
+static long start_symbol ();
+static long superrule ();
+static long super_symbol ();
+static long terminal ();
+static void addpart ();
+static void alts (long firstalt);
+static void checkdups ();
+static void copy_affixes (long afx);
+static void copy_display ();
+static void copy_terms (long term);
+static void factors ();
+static void getlastnode ();
+static void grammar ();
+static void initialize ();
+static void lattice_mems ();
+static void members ();
+static void meta_factors ();
+static void morepieces ();
+static void mterminal ();
+static void pieces ();
+static void printaffixtype (FILE *channel, long afxt);
+static void realloc_ast ();
+static void setlookahead (long *lkh);
+static void stddefs ();
+static void terms ();
+void compile () 
 {
-  int rule;
+  long rule;
   initialize ();
   grammar ();
   line = 0;
@@ -43,10 +118,10 @@ compile ()
 
   if (verbose_flag)
     fprintf (stderr, "no syntax errors detected.\
-        \n%d name entries in hash table (max = %d).\
-        \n%d chars in symbol table.\
-        \n%d name clashes occured.\
-        \nsetting meta affixes.\n", nr_names, maxnt, symbol_table_size + charindex, name_clashes);
+	\n%ld name entries in hash table (max = %ld).\
+	\n%ld chars in symbol table.\
+	\n%ld name clashes occured.\
+	\nsetting meta affixes.\n", nr_names, maxnt, symbol_table_size + charindex, name_clashes);
   set_meta_affixes ();
   if (verbose_flag)
     fprintf (stderr, "match applications with definitions.\n");
@@ -74,7 +149,7 @@ compile ()
   }
 
   if (verbose_flag)
-    fprintf (stderr, "eliminate defining expressions.\n");
+    fprintf (stderr, "eliminate defining affix expressions.\n");
 
   eag ();
 
@@ -91,25 +166,36 @@ compile ()
   if (tagindex_flag)
     tag_index ();
 
-  tr_lattice ();
   if (verbose_flag)
-    fprintf (stderr, "eliminate implied equals.\n");
+    fprintf (stderr, "enforce consistent substitutions for  affixes and lattices\n");
   ie ();
 
   if (verbose_flag)
-    fprintf (stderr, "eliminate wheres.\n");
+    fprintf (stderr, "transform lattices used as affix \n");
+  tr_lattice ();
 
+
+  if (verbose_flag)
+    fprintf (stderr, "eliminate \"where\" optimization.\n");
   wheres ();
 
   if (verbose_flag)
-    fprintf (stderr, "compute \"is predicate\".\n");
+    fprintf (stderr, "compute \"is predicate\" property for hyperrules.\n");
   compute_predicates ();
 
   if (verbose_flag)
     fprintf (stderr, "tail recursion opt.\n");
 
+  if (verbose_flag)
+    fprintf (stderr, "move terminals up in rhs optimization.\n");
   move_terms_up ();
+
+  if (verbose_flag)
+    fprintf (stderr, "final defining affix expression optimization.\n");
   final_nestarset_removal ();
+
+  if (verbose_flag)
+    fprintf (stderr, "tail recursion optimization.\n");
   tail_rec_opt ();
 
   if (verbose_flag)
@@ -120,7 +206,7 @@ compile ()
   if (fulltrace_flag || fullstat_flag)
   {
     if (verbose_flag)
-      fprintf (stderr, "alias builtin for tracing.\n");
+      fprintf (stderr, "alias builtins for tracing.\n");
     trace ();
   }
 
@@ -134,7 +220,7 @@ compile ()
     if (memopt_flag)
     {
       if (verbose_flag)
-        fprintf (stderr, "memoizer optimizer.\n");
+	fprintf (stderr, "memoizer optimizer.\n");
       memopt ();
     }
     if (verbose_flag)
@@ -153,8 +239,8 @@ compile ()
     for (rule = root; rule != nil; rule = BROTHER (rule))
       if (REPR (rule) == startname)
       {
-        startnode = rule;
-        break;
+	startnode = rule;
+	break;
       }
     if (rule == nil)
     {
@@ -173,6 +259,7 @@ compile ()
   if (verbose_flag)
     fprintf (stderr, "compute affix usage.\n");
   affixuse ();
+
   if (tree_flag)
   {
     printtree ();
@@ -191,15 +278,15 @@ compile ()
   {
     if (input_from_partlist)
     {
-      int rule;
+      long rule;
       for (rule = root; rule != laststdpred; rule = BROTHER (rule))
-        SET (rule, docompile);
+	SET (rule, docompile);
     }
     code ();
   }
 }
 
-initialize ()
+static void initialize () 
 {
   lastmetarule = nil;
   first_lattice = nil;
@@ -223,9 +310,7 @@ initialize ()
   laststdmetarule = lastmetarule;
 }
 
-newnode (name, brothers, sons, repr)
-int name, brothers, sons;
-char *repr;
+void newnode (long name, long brothers, long sons, char *repr) 
 {
   NODENAME (astindex) = name;
   BROTHER (astindex) = brothers;
@@ -243,9 +328,7 @@ char *repr;
     realloc_ast ();
 }
 
-newdefnode (name, brothers, sons, def, repr)
-int name, brothers, sons, def;
-char *repr;
+void newdefnode (long name, long brothers, long sons, long def, char *repr) 
 {
   NODENAME (astindex) = name;
   BROTHER (astindex) = brothers;
@@ -259,9 +342,7 @@ char *repr;
     realloc_ast ();
 }
 
-newrulenode (name, brothers, sons, line, part, repr)
-int name, brothers, sons, line;
-char *part, *repr;
+void newrulenode (long name, long brothers, long sons, long line, char *part, char *repr) 
 {
   NODENAME (astindex) = name;
   BROTHER (astindex) = brothers;
@@ -276,37 +357,20 @@ char *part, *repr;
     realloc_ast ();
 }
 
-#ifdef NVER
-newrulenode (name, brothers, sons, def, repr)
-int name, brothers, sons, def;
-char *repr;
-{
-  NODENAME (astindex) = name;
-  BROTHER (astindex) = brothers;
-  SON (astindex) = sons;
-  DEF (astindex) = def;
-  REPR (astindex) = repr;
-  FLAGS (astindex) = 0;
-  brother = astindex++;
-  astindex++;
-  if (astindex >= max_item)
-    realloc_ast ();
-}
-#endif
-realloc_ast ()
+static void realloc_ast () 
 {
   max_item <<= 1;
   ast = (AST *) realloc (ast, (max_item + 2) * sizeof (AST));
   if (ast == NULL)
   {
-    fprintf (stderr, "glammar fatal msg: no %d bytes available for heap space\n", max_item * 20);
+    fprintf (stderr, "glammar fatal msg: no %ld bytes available for heap space\n", max_item * 20);
     exit (1);
   }
   if (verbose_flag)
-    fprintf (stderr, "realloc ast: %d bytes available for heap space\n", max_item * 20);
+    fprintf (stderr, "realloc ast: %ld bytes available for heap space\n", max_item * 20);
 }
 
-grammar ()
+static void grammar () 
 {
   brother = nil;
   pieces ();
@@ -314,11 +378,11 @@ grammar ()
     errmsg ("RULES");
 }
 
-pieces ()
+static void pieces () 
 {
   if (input_from_partlist)
   {
-    (void) sprintf (&chartable[charindex], "%s.p\0", thispart);
+    (void) sprintf (&chartable[charindex], "%s.p", thispart);
     part_file = &chartable[charindex];
     while (chartable[charindex++] != '\0');
     prevcharindex = charindex;
@@ -330,9 +394,8 @@ pieces ()
     }
   }
   sum = 0;
-  if (input_from_partlist && (fscanf (partlist, "%s %d", thispart, &sum) != -1))
+  if (input_from_partlist && (fscanf (partlist, "%s %ld", thispart, &sum) != -1))
   {
-    int comp = false;
     cur_part_name = &chartable[charindex];
     strcpy (cur_part_name, thispart);
     while (chartable[charindex++] != '\0');
@@ -369,18 +432,18 @@ pieces ()
   {
     if (!input_from_stdin)
     {
-      (void) sprintf (inputfilename, "%s.g\0", thispart);
+      (void) sprintf (inputfilename, "%.200s.g", thispart);
 
       input = fopen (inputfilename, "r");
       if (verbose_flag)
-        fprintf (stderr, "%s opened\n", inputfilename);
+	fprintf (stderr, "%s opened\n", inputfilename);
     }
     else
     {
       input = stdin;
       (void) sprintf (inputfilename, "@stdin@");
       if (verbose_flag)
-        fprintf (stderr, "stdin opened\n");
+	fprintf (stderr, "stdin opened\n");
     }
 
     if (input == NULL)
@@ -401,7 +464,7 @@ pieces ()
     else
     {
       if (verbose_flag)
-        fprintf (stderr, "Glammar: empty file?\n");
+	fprintf (stderr, "Glammar: empty file?\n");
     }
   }
   else
@@ -412,13 +475,12 @@ pieces ()
 }
 
 
-morepieces ()
+static void morepieces () 
 {
-  int prevlastnode;
+  long prevlastnode;
   sum = 0;
-  if (fscanf (partlist, "%s %d", thispart, &sum) != -1)
+  if (fscanf (partlist, "%s %ld", thispart, &sum) != -1)
   {
-    int comp = false;
     fclose (input);
     input = fopen (thispart, "r");
     cur_part_name = &chartable[charindex];
@@ -435,15 +497,14 @@ morepieces ()
     getnextchar ();
     prevlastnode = lastnode;
     brother = nil;
-    comp = false;
     rules (rnode);
     getlastnode ();
     if (prevlastnode != lastnode)
     {
       if (verbose_flag)
-        fprintf (stderr, "glammar: %s linked to %s\n", FREPR (prevlastnode), FREPR (firstnode));
+	fprintf (stderr, "glammar: %s linked to %s\n", FREPR (prevlastnode), FREPR (firstnode));
       PART (firstnode) = cur_part_name;
-      OLDSUM (firstnode) = (int) sum;
+      OLDSUM (firstnode) = (long) sum;
       BROTHER (prevlastnode) = firstnode;
     }
     else
@@ -455,21 +516,20 @@ morepieces ()
   }
 }
 
-getlastnode ()
+static void getlastnode () 
 {
-  int rule;
+  long rule;
   for (rule = firstnode; rule != nil; rule = BROTHER (rule))
   {
     if (NODENAME (rule) != meta_prod_rule)
       if (NODENAME (rule) != 0)
-        lastnode = rule;
+	lastnode = rule;
   }
 }
 
-rules (ruletype)
-int ruletype;
+void rules (long ruletype) 
 {
-  int sons, ln, loc_glob = rnode;
+  long sons, ln, loc_glob = rnode;
   char *thisname = "??";
 
 l:
@@ -512,12 +572,12 @@ l:
     if (index_flag)
     {
       if (fprintf (indexfile, "%s (", full_repr (thisname)) == EOF)
-        fprintf (stderr, "glammar: Write to index file failed\n");
+	fprintf (stderr, "glammar: Write to index file failed\n");
       printaffixtype (indexfile, lastaffixtree);
       if (input_from_partlist)
-        fprintf (indexfile, "), file: `%s' %d\n", thispart, line);
+	fprintf (indexfile, "), file: `%s' %ld\n", thispart, line);
       else
-        fprintf (indexfile, "), %d\n", line);
+	fprintf (indexfile, "), %ld\n", line);
     }
     alts (true);
     sons = brother;
@@ -535,12 +595,11 @@ l:
 }
 
 
-alts (firstalt)
-int firstalt;
+static void alts (long firstalt) 
 {
-  int asons, lefths, errline, locaffixtree, memaffixtree, settype;
+  long asons, lefths, errline, locaffixtree, memaffixtree, settype;
   char *thisname = "LHS";
-  int lkh = 0;
+  long lkh = 0;
   lefths = false;
   asons = nil;
   errline = line;
@@ -553,23 +612,24 @@ int firstalt;
   locaffixtree = defaffixtree;
   if ((name_display_mix ()) || (cut_symbol ()))
   {
-    int l_g;
+    long l_g;
     thisname = ntname;
     if (define_symbol (&l_g))
     {
       lefths = true;
       if (firstalt)
-        errmsg ("only one left-hand side");
+	errmsg ("only one left-hand side");
       locaffixtree = lastaffixtree;
       defaffixtree = locaffixtree;
       brother = nil;
       if (lkh == lookahead)
-        errmsg ("no LOOKAHEAD symbol");
+	errmsg ("no LOOKAHEAD symbol");
       members ();
     }
     else if (!comma_symbol ())
     {
       newnode (ntnode | lkh, nil, brother, thisname);
+      LINE(brother) = errline;
       nrntmems += 1;
     }
     else
@@ -578,6 +638,7 @@ int firstalt;
       brother = nil;
       members ();
       newnode (ntnode | lkh, brother, memaffixtree, thisname);
+      LINE(brother) = errline;
       nrntmems += 1;
     }
   }
@@ -588,8 +649,8 @@ int firstalt;
       if (strlen (string) == 0);
       else
       {
-        newnode (tnode | lkh, nil, nil, string);
-        nrterms += 1;
+	newnode (tnode | lkh, nil, nil, string);
+	nrterms += 1;
       }
     }
     else
@@ -599,8 +660,8 @@ int firstalt;
       if (strlen (thisname) == 0);
       else
       {
-        newnode (tnode | lkh, brother, nil, thisname);
-        nrterms += 1;
+	newnode (tnode | lkh, brother, nil, thisname);
+	nrterms += 1;
       }
     }
   }
@@ -650,7 +711,7 @@ int firstalt;
     optlefthsd = 1;
     if (input_from_partlist)
       fprintf (stderr, "In %s:\n", cur_part_name);
-    fprintf (stderr, "line %d: (message) no left-hand side in `%s'\n", errline, full_repr (rulename));
+    fprintf (stderr, "line %ld: (message) no left-hand side in `%s'\n", errline, full_repr (rulename));
   }
   asons = brother;
   brother = nil;
@@ -662,7 +723,7 @@ int firstalt;
   brother = nil;
   if (goon_symbol ())
   {
-    alts (false);
+    alts ((long)false);
     newnode (locaffixtree, brother, asons, (char *) "");
     LINE (brother) = errline;
     RuleCount += 1;
@@ -670,20 +731,20 @@ int firstalt;
     {
       if (rulename != thisname)
       {
-        if (input_from_partlist)
-          fprintf (stderr, "In %s:\n", cur_part_name);
-        fprintf (stderr, "line %d: LHS '%s' expected\n", errline, full_repr (rulename));
-        syntaxerrors += 1;
-        rulename = thisname;
-        dfa = locaffixtree;
+	if (input_from_partlist)
+	  fprintf (stderr, "In %s:\n", cur_part_name);
+	fprintf (stderr, "line %ld: LHS '%s' expected\n", errline, full_repr (rulename));
+	syntaxerrors += 1;
+	rulename = thisname;
+	dfa = locaffixtree;
       }
       else if (!consistentaffixtype (dfa, locaffixtree))
       {
-        if (input_from_partlist)
-          fprintf (stderr, "In %s:\n", cur_part_name);
-        fprintf (stderr, "line %d: LHS '%s' :", errline, full_repr (rulename));
-        affixerrmsg (locaffixtree, dfa);
-        syntaxerrors += 1;
+	if (input_from_partlist)
+	  fprintf (stderr, "In %s:\n", cur_part_name);
+	fprintf (stderr, "line %ld: LHS '%s' :", errline, full_repr (rulename));
+	affixerrmsg (locaffixtree, dfa);
+	syntaxerrors += 1;
       }
     }
   }
@@ -696,20 +757,20 @@ int firstalt;
     {
       if (rulename != thisname)
       {
-        if (input_from_partlist)
-          fprintf (stderr, "In %s:\n", cur_part_name);
-        fprintf (stderr, "line %d: LHS '%s' expected\n", errline, full_repr (rulename));
-        rulename = thisname;
-        dfa = locaffixtree;
-        syntaxerrors += 1;
+	if (input_from_partlist)
+	  fprintf (stderr, "In %s:\n", cur_part_name);
+	fprintf (stderr, "line %ld: LHS '%s' expected\n", errline, full_repr (rulename));
+	rulename = thisname;
+	dfa = locaffixtree;
+	syntaxerrors += 1;
       }
       else if (!consistentaffixtype (dfa, locaffixtree))
       {
-        if (input_from_partlist)
-          fprintf (stderr, "In %s:\n", cur_part_name);
-        fprintf (stderr, "line %d: LHS '%s' :", errline, full_repr (rulename));
-        affixerrmsg (locaffixtree, dfa);
-        syntaxerrors += 1;
+	if (input_from_partlist)
+	  fprintf (stderr, "In %s:\n", cur_part_name);
+	fprintf (stderr, "line %ld: LHS '%s' :", errline, full_repr (rulename));
+	affixerrmsg (locaffixtree, dfa);
+	syntaxerrors += 1;
       }
     }
   }
@@ -725,8 +786,7 @@ int firstalt;
 
 #define LOOKahead_symbol ( thischar == '?' )
 
-setlookahead (lkh)
-int *lkh;
+static void setlookahead (long *lkh) 
 {
   if (LOOKahead_symbol)
   {
@@ -736,11 +796,12 @@ int *lkh;
 }
 
 
-members ()
+static void members () 
 {
   char *repr;
-  int locaffixtree, settype, lkh = 0;
+  long locaffixtree, settype, lkh = 0, ln = line;
   setlookahead (&lkh);
+
   if (terminal ())
   {
     if (!comma_symbol ())
@@ -748,8 +809,9 @@ members ()
       if (strlen (string) == 0);
       else
       {
-        newnode (tnode + lkh, nil, nil, string);
-        nrterms += 1;
+	newnode (tnode + lkh, nil, nil, string);
+	LINE(brother) = ln;
+	nrterms += 1;
       }
     }
     else
@@ -759,8 +821,9 @@ members ()
       if (strlen (repr) == 0);
       else
       {
-        newnode (tnode + lkh, brother, nil, repr);
-        nrterms += 1;
+	newnode (tnode + lkh, brother, nil, repr);
+	LINE(brother) = ln;
+	nrterms += 1;
       }
     }
   }
@@ -786,15 +849,18 @@ members ()
       locaffixtree = brother;
       members ();
       newnode (cnode | settype | lkh, brother, locaffixtree, repr);
+      LINE(brother) = ln;
       nrterms += 1;
     }
   }
   else if ((name_display_mix ()) || (cut_symbol ()))
   {
     repr = ntname;
+    ln = line;
     if (!comma_symbol ())
     {
       newnode (ntnode | lkh, nil, brother, repr);
+      LINE(brother) = ln;
       nrntmems += 1;
     }
     else
@@ -802,6 +868,7 @@ members ()
       locaffixtree = lastaffixtree;
       members ();
       newnode (ntnode | lkh, brother, locaffixtree, repr);
+      LINE(brother) = ln;
       nrntmems += 1;
     }
   }
@@ -818,6 +885,7 @@ members ()
     brother = nil;
     members ();
     newnode (ntnode, brother, locaffixtree, redirect);
+    LINE(brother) = ln;
   }
 }
 
@@ -825,7 +893,7 @@ members ()
 #define GETnextchar thischar = getc(input)
 #define SKIPset_symbol thischar = getc(input)
 
-set ()
+static long set () 
 {
   lastsettype = 0;
   if (complement_symbol ())
@@ -873,7 +941,7 @@ set ()
 }
 
 
-morelongset ()
+static long morelongset () 
 {
   SKIPset_symbol;
   while (thischar != '!')
@@ -885,29 +953,29 @@ morelongset ()
       GETnextchar;
       switch (thischar)
       {
-      case '\n':
-        GETnextchar;
-        line += 1;
-        continue;
-      case '"':
-        chartable[charindex++] = '\\';
-        chartable[charindex++] = '\\';
-      case '0':
-      case 'r':
-      case 't':
-      case 'n':
-      case 'f':
-      case 'v':
-      case 'b':
-      case '\\':
-        chartable[charindex++] = '\\';
-        break;
-      case '!':
-        break;
-      default:
-        chartable[charindex++] = '\\';
-        chartable[charindex++] = '\\';
-        break;
+	case '\n':
+	  GETnextchar;
+	  line += 1;
+	  continue;
+	case '"':
+	  chartable[charindex++] = '\\';
+	  chartable[charindex++] = '\\';
+	case '0':
+	case 'r':
+	case 't':
+	case 'n':
+	case 'f':
+	case 'v':
+	case 'b':
+	case '\\':
+	  chartable[charindex++] = '\\';
+	  break;
+	case '!':
+	  break;
+	default:
+	  chartable[charindex++] = '\\';
+	  chartable[charindex++] = '\\';
+	  break;
       }
     }
     chartable[charindex++] = thischar;
@@ -927,7 +995,7 @@ morelongset ()
 }
 
 
-moreset ()
+static long moreset () 
 {
   do
   {
@@ -938,9 +1006,9 @@ moreset ()
       GETnextchar;
       if (thischar == '\n')
       {
-        errmsg ("not a NEW LINE char in a set");
-        line += 1;
-        break;
+	errmsg ("not a NEW LINE char in a set");
+	line += 1;
+	break;
       }
     }
 
@@ -957,7 +1025,7 @@ moreset ()
 }
 
 
-sequenceroption ()
+static long sequenceroption () 
 {
   skiplayout ();
   if (thischar == '*')
@@ -984,7 +1052,7 @@ sequenceroption ()
 #define GETnextTerminal thischar = getc(input)
 #define SKIPquote thischar = getc(input)
 
-terminal ()
+static long terminal () 
 {
   if (QUOTE)
   {
@@ -998,7 +1066,7 @@ terminal ()
 }
 
 
-mterminal ()
+static void mterminal () 
 {
   while (NotQUOTE)
   {
@@ -1007,27 +1075,27 @@ mterminal ()
       GETnextchar;
       switch (thischar)
       {
-      case '\n':
-      case '\f':
-      case '\r':
-        GETnextchar;
-        line += 1;
-        continue;
-      case '"':
-      case '0':
-      case 'r':
-      case 't':
-      case 'n':
-      case 'f':
-      case 'v':
-      case 'b':
-      case '\\':
-        chartable[charindex++] = '\\';
-        break;
-      default:
-        chartable[charindex++] = '\\';
-        chartable[charindex++] = '\\';
-        break;
+	case '\n':
+	case '\f':
+	case '\r':
+	  GETnextchar;
+	  line += 1;
+	  continue;
+	case '"':
+	case '0':
+	case 'r':
+	case 't':
+	case 'n':
+	case 'f':
+	case 'v':
+	case 'b':
+	case '\\':
+	  chartable[charindex++] = '\\';
+	  break;
+	default:
+	  chartable[charindex++] = '\\';
+	  chartable[charindex++] = '\\';
+	  break;
       }
     }
     chartable[charindex++] = thischar;
@@ -1045,7 +1113,7 @@ mterminal ()
   skiplayout ();
 }
 
-cut_symbol ()
+static long cut_symbol () 
 {
   if (thischar == '-')
   {
@@ -1067,7 +1135,7 @@ cut_symbol ()
 }
 
 
-comma_symbol ()
+static long comma_symbol () 
 {
   if (thischar == ',')
   {
@@ -1078,12 +1146,7 @@ comma_symbol ()
     return false;
 }
 
-mint_symbol ()
-{
-  return (isdigit (thischar));
-}
-
-super_symbol ()
+static long super_symbol () 
 {
   if (thischar == '@')
   {
@@ -1094,7 +1157,7 @@ super_symbol ()
     return false;
 }
 
-lattice_symbol ()
+static long lattice_symbol () 
 {
   if (thischar == '{')
   {
@@ -1106,8 +1169,7 @@ lattice_symbol ()
     return false;
 }
 
-define_symbol (l_g)             /* local or global rule */
-int *l_g;
+static long define_symbol (long *l_g) 
 {
   if (thischar == '=')
   {
@@ -1130,7 +1192,7 @@ int *l_g;
 }
 
 
-start_symbol ()
+static long start_symbol () 
 {
   if (thischar == '!')
   {
@@ -1142,7 +1204,7 @@ start_symbol ()
 }
 
 
-point_symbol ()
+static long point_symbol () 
 {
   if (thischar == '.')
   {
@@ -1154,7 +1216,7 @@ point_symbol ()
 }
 
 
-dontcare_symbol ()
+static long dontcare_symbol () 
 {
   if (thischar == '_')
   {
@@ -1165,7 +1227,7 @@ dontcare_symbol ()
     return false;
 }
 
-fact_symbol ()
+static long fact_symbol () 
 {
   if (thischar == '*')
   {
@@ -1176,14 +1238,14 @@ fact_symbol ()
   {
     if (input_from_partlist)
       fprintf (stderr, "In %s:\n", cur_part_name);
-    fprintf (stderr, "line %d: * symbol inserted\n", line);
+    fprintf (stderr, "line %ld: * symbol inserted\n", line);
     return true;
   }
   else
     return false;
 }
 
-negate_symbol ()
+static long negate_symbol () 
 {
   if (thischar == '-')
   {
@@ -1193,7 +1255,7 @@ negate_symbol ()
   return false;
 }
 
-pos_symbol ()
+static long pos_symbol () 
 {
   if (thischar == '+')
   {
@@ -1203,7 +1265,7 @@ pos_symbol ()
   return false;
 }
 
-plus_symbol ()
+static long plus_symbol () 
 {
   if (thischar == '+')
   {
@@ -1214,7 +1276,7 @@ plus_symbol ()
   {
     if (input_from_partlist)
       fprintf (stderr, "In %s:\n", cur_part_name);
-    fprintf (stderr, "line %d: + symbol inserted\n", line);
+    fprintf (stderr, "line %ld: + symbol inserted\n", line);
     return true;
   }
   else
@@ -1222,7 +1284,7 @@ plus_symbol ()
 }
 
 
-close_symbol ()
+long close_symbol () 
 {
   if (thischar == ')')
   {
@@ -1233,7 +1295,7 @@ close_symbol ()
     return false;
 }
 
-square_open_symbol ()
+static long square_open_symbol () 
 {
   if (thischar == '[')
   {
@@ -1244,7 +1306,7 @@ square_open_symbol ()
     return false;
 }
 
-square_close_symbol ()
+static long square_close_symbol () 
 {
   if (thischar == ']')
   {
@@ -1256,7 +1318,7 @@ square_close_symbol ()
 }
 
 
-open_symbol ()
+long open_symbol () 
 {
   if (thischar == '(')
   {
@@ -1268,7 +1330,7 @@ open_symbol ()
 }
 
 
-complement_symbol ()
+static long complement_symbol () 
 {
   if (thischar == '^' || thischar == '~')
   {
@@ -1280,7 +1342,7 @@ complement_symbol ()
 }
 
 
-flow_symbol ()
+static long flow_symbol () 
 {
   if (thischar == '>')
   {
@@ -1292,7 +1354,7 @@ flow_symbol ()
 }
 
 
-goon_symbol ()
+static long goon_symbol () 
 {
   if (thischar == ';')
   {
@@ -1303,22 +1365,22 @@ goon_symbol ()
     return false;
 }
 
-getfirstchar ()
+void getfirstchar () 
 {
   thischar = getc (input);
   glm_options ();
 }
 
-getnextchar ()
+long getnextchar () 
 {
   thischar = getc (input);
   return skiplayout ();
 }
 
 
-skiplayout ()
+long skiplayout () 
 {
-  int space_skipped = 0;
+  long space_skipped = 0;
   while ((thischar == '\t' || thischar == ' ' || thischar == '\n') && (!feof (input)))
   {
     if (thischar == '\n')
@@ -1343,7 +1405,7 @@ skiplayout ()
     {
       thischar = getc (input);
       if (thischar == '\n')
-        line += 1;
+	line += 1;
 
     }
     while ((thischar != '%') && (!feof (input)));
@@ -1354,19 +1416,7 @@ skiplayout ()
 }
 
 
-displayoption ()
-{
-  if (display ())
-    lastaffixtree = brother;
-  else
-  {
-    lastaffixtree = nil;
-    brother = nil;
-  }
-}
-
-
-display ()
+static long display () 
 {
   if (open_symbol ())
   {
@@ -1386,9 +1436,9 @@ display ()
 }
 
 
-affixes ()
+void affixes () 
 {
-  int sons = 0;
+  long sons = 0;
   if (flow_symbol ())
   {
     terms ();
@@ -1409,41 +1459,41 @@ affixes ()
     {
       if (comma_symbol ())
       {
-        affixes ();
-        newnode (derived, brother, sons, "(nil)");
+	affixes ();
+	newnode (derived, brother, sons, "(nil)");
       }
       else
-        newnode (derived, nil, sons, "(nil)");
+	newnode (derived, nil, sons, "(nil)");
     }
     else
     {
-      int term;
+      long term;
       if (comma_symbol ())
       {
-        affixes ();
-        newnode (lattice_affix, brother, sons, "(nil)");
+	affixes ();
+	newnode (lattice_affix, brother, sons, "(nil)");
       }
       else
-        newnode (lattice_affix, nil, sons, "(nil)");
+	newnode (lattice_affix, nil, sons, "(nil)");
       term = SON (brother);;
       if ((BROTHER (term) != nil) || (NODENAME (term) != affixnt))
       {
-        errmsg ("FLOW (>) symbol");
-        syntaxerrors += 1;
+	errmsg ("FLOW (>) symbol");
+	syntaxerrors += 1;
       }
       if (SON (term) != nil)
       {
-        errmsg ("FLOW (>) symbol");
-        syntaxerrors += 1;
+	errmsg ("FLOW (>) symbol");
+	syntaxerrors += 1;
       }
     }
   }
 }
 
 
-terms ()
+static void terms () 
 {
-  int sons;
+  long sons;
   char *afxnt, *afxtm;
   if ((name ()) || (dontcare ()) || affixpr ())
   {
@@ -1460,11 +1510,11 @@ terms ()
       sons = brother;
       if (plus_symbol ())
       {
-        terms ();
-        newnode (factor, brother, sons, "(nil)");
+	terms ();
+	newnode (factor, brother, sons, "(nil)");
       }
       else
-        newnode (factor, nil, sons, "(nil)");
+	newnode (factor, nil, sons, "(nil)");
     }
     else if (open_symbol ())
     {
@@ -1473,11 +1523,11 @@ terms ()
       sons = brother;
       if (plus_symbol ())
       {
-        terms ();
-        newnode (factor, brother, sons, "(nil)");
+	terms ();
+	newnode (factor, brother, sons, "(nil)");
       }
       else
-        newnode (factor, nil, sons, "(nil)");
+	newnode (factor, nil, sons, "(nil)");
     }
     else
       newnode (affixnt, nil, nil, afxnt);
@@ -1497,11 +1547,11 @@ terms ()
       sons = brother;
       if (plus_symbol ())
       {
-        terms ();
-        newnode (factor, brother, sons, "(nil)");
+	terms ();
+	newnode (factor, brother, sons, "(nil)");
       }
       else
-        newnode (factor, nil, sons, "(nil)");
+	newnode (factor, nil, sons, "(nil)");
     }
     else
       newnode (affixtm, nil, nil, afxtm);
@@ -1538,15 +1588,16 @@ char dc_repr[128][4] = {
 };
 
 
-int dc_cnt = 0;
-int affixpr_root = 0;
-affixpr ()
+long dc_cnt = 0;
+long affixpr_root = 0;
+
+static long affixpr () 
 {
-  int was_open = false;
+  long was_open = false;
   if ((was_open = open_symbol ()) || name ())
   {
 
-    int save_brother = brother;
+    long save_brother = brother;
     char *alias_name;
     if (!was_open && !open_symbol ())
       return true;
@@ -1571,7 +1622,7 @@ affixpr ()
   return false;
 }
 
-dontcare ()
+static long dontcare () 
 {
   if (dontcare_symbol ())
   {
@@ -1581,13 +1632,13 @@ dontcare ()
   return false;
 }
 
-dontcare2 ()
+static long dontcare2 () 
 {
   string = dc_repr[dc_cnt++ & 127];
   return true;
 }
 
-factors ()
+static void factors () 
 {
   char *afxnt, *afxtm;
   if ((name ()) || (dontcare ()))
@@ -1622,34 +1673,27 @@ factors ()
 }
 
 
-errmsg (msg)
-char *msg;
+void errmsg (char *msg) 
 {
   if (usefullerrmsg)
   {
     if (input_from_partlist)
       fprintf (stderr, "In %s:\n", cur_part_name);
-    fprintf (stderr, "line %d: char `%c': %s expected\n", line, thischar, msg);
+    fprintf (stderr, "line %ld: char `%c': %s expected\n", line, thischar, msg);
     syntaxerrors += 1;
     if (syntaxerrors > 7)
       exit (12);
   }
 }
 
-skiptopoint_symbol ()
+void skiptopoint_symbol () 
 {
   while ((thischar != '.') && (!feof (input)))
     getnextchar ();
   getnextchar ();
 }
 
-skip_term ()
-{
-  while ((thischar != '>' || thischar != ')') && (!feof (input)))
-    getnextchar ();
-}
-
-startspecification ()
+static long startspecification () 
 {
   if (start_symbol ())
   {
@@ -1662,23 +1706,24 @@ startspecification ()
   return false;
 }
 
-consistentaffixtype (def, app)
-int def, app;
+long consistentaffixtype (long def, long app) 
 {
   for (; def != nil; def = BROTHER (def), app = BROTHER (app))
     if (app == nil)
       return false;
     else if (NODENAME (def) == NODENAME (app))
     {
-      if (NODENAME (def) == lattice_affix)
-        if (DEF (LATTICE_DEF (SON (def))) != DEF (LATTICE_DEF (SON (app))))
-        {
-          if (input_from_partlist)
-            fprintf (stderr, "In %s:\n", cur_part_name);
-          fprintf (stderr, "`%s' and `%s' occur in different lattices\n", FREPR (SON (def)), FREPR (SON (app)));
+      long def_trm = SON(def), app_trm = SON(app);
+      if (NODENAME (def) == lattice_affix && LATTICE_DEF(def_trm) != nil)
+	if (DEF (LATTICE_DEF (def_trm)) != DEF (LATTICE_DEF (app_trm)))
+	{
+	  if (input_from_partlist)
+	    fprintf (stderr, "In %s:\n", cur_part_name);
+	  fprintf (stderr, "Line %ld and %ld, lattice `%s' and `%s' occur in different groups\n", 
+	      LINE(def_trm), LINE(app_trm),FREPR(def_trm), FREPR(app_trm));
 
-          return false;
-        }
+	  return false;
+	}
     }
     else
       return false;
@@ -1688,13 +1733,12 @@ int def, app;
   return true;
 }
 
-valid_overloaded_affixtype (def, app, parent_app)
-int def, app, parent_app;
+long valid_overloaded_affixtype (long def, long app, long parent_app) 
 {
-  int app_afxtree;
-  int def_afxtree;
-  int count = 0;
-  int prev_afxtree;
+  long app_afxtree;
+  long def_afxtree;
+  long count = 0;
+  long prev_afxtree;
 
   if (consistentaffixtype (def, app))
     return true;
@@ -1728,25 +1772,25 @@ int def, app, parent_app;
       newnode (derived, nil, brother, "");
       if (app_afxtree == nil)
       {
-        if (prev_afxtree == nil)
-          SON (parent_app) = brother;
-        else
-          BROTHER (prev_afxtree) = brother;
+	if (prev_afxtree == nil)
+	  SON (parent_app) = brother;
+	else
+	  BROTHER (prev_afxtree) = brother;
 
-        prev_afxtree = brother;
+	prev_afxtree = brother;
       }
       else
       {
-        /* insert before current node */
-        if (prev_afxtree == nil)
-        {
-          SON (parent_app) = brother;
-        }
-        else
-        {
-          BROTHER (prev_afxtree) = brother;
-        }
-        BROTHER (brother) = app_afxtree;
+	/* insert before current node */
+	if (prev_afxtree == nil)
+	{
+	  SON (parent_app) = brother;
+	}
+	else
+	{
+	  BROTHER (prev_afxtree) = brother;
+	}
+	BROTHER (brother) = app_afxtree;
       }
       prev_afxtree = brother;
       app_afxtree = BROTHER (brother);
@@ -1760,22 +1804,21 @@ int def, app, parent_app;
   return true;
 }
 
-printaffixtype (channel, afxt)
-FILE *channel;
-int afxt;
+static void printaffixtype (FILE *channel, long afxt) 
 {
   for (; afxt != nil; afxt = BROTHER (afxt))
     if (NODENAME (afxt) == derived)
       fprintf (channel, "d");
     else if (INHERITED (afxt))
       fprintf (channel, "i");
-    else
+    else if (LATTICE_DEF(SON(afxt)) != nil)
       fprintf (channel, "a%ld", DEF (LATTICE_DEF (SON (afxt))));
+    else 
+      fprintf (channel, "a");
 }
 
 
-affixerrmsg (original, bad_copy)
-int original, bad_copy;
+void affixerrmsg (long original, long bad_copy) 
 {
   fprintf (stderr, "Wrong affix type: (");
   printaffixtype (stderr, bad_copy);
@@ -1784,9 +1827,9 @@ int original, bad_copy;
   fprintf (stderr, ")\n");
 }
 
-stddefs ()
+static void stddefs () 
 {
-  int i_flag = index_flag;
+  long i_flag = index_flag;
   index_flag = false;
   get_stddefs ();
   input = fopen (stddefs_g, "r");
@@ -1801,7 +1844,7 @@ stddefs ()
   laststdpred = brother;
   if (hack_flag)
   {
-    (void) sprintf (stddefs_g, "%s%sglext.g", hack_dir, dirsep);
+    (void) sprintf (stddefs_g, "%.200s%.2sglext.g", hack_dir, dirsep);
     fclose (input);
     input = fopen (stddefs_g, "r");
     if (input == NULL)
@@ -1828,7 +1871,7 @@ stddefs ()
   }
 }
 
-addpart ()
+static void addpart () 
 {
   char *x = thispart, *p_base;
   if (hide_flag)
@@ -1855,15 +1898,14 @@ addpart ()
 }
 
 
-copy_display ()
+static void copy_display () 
 {
   copy_affixes (defaffixtree);
 }
 
-copy_affixes (afx)
-int afx;
+static void copy_affixes (long afx) 
 {
-  int b;
+  long b;
   if (afx == nil)
     return;
   copy_affixes (BROTHER (afx));
@@ -1873,8 +1915,7 @@ int afx;
   newnode (NODENAME (afx), b, brother, "");
 }
 
-copy_terms (term)
-int term;
+static void copy_terms (long term) 
 {
   if (term == nil)
     return;
@@ -1883,107 +1924,106 @@ int term;
 }
 
 
-metarule (ruletype)
-int ruletype;
+static long metarule (long ruletype) 
 {
-  int type;
+  long type;
   char *thisname = string;
-  int b = brother, ln = line;
+  long b = brother, ln = line;
   if (ismetarule (&type))
     switch (type)
     {
-    case One:
-      if (index_flag)
-      {
-        if (input_from_partlist)
-          fprintf (indexfile, "%s (M), file: `%s' %d\n", full_repr (thisname), thispart, line);
-        else
-          fprintf (indexfile, "%s (M), %d\n", full_repr (thisname), line);
-      }
-      if (ruletype & docompile)
-        newdefnode (meta_prod_rule, lastmetarule, SON (brother), docompile, rulename);
-      else
-        newnode (meta_prod_rule, lastmetarule, SON (brother), rulename);
-      lastmetarule = brother;
-      break;
-    case OneStar:
-      if (index_flag)
-      {
-        if (input_from_partlist)
-          fprintf (indexfile, "%s (P), file: `%s' %d\n", full_repr (thisname), thispart, line);
-        else
-          fprintf (indexfile, "%s (P), %d\n", full_repr (thisname), line);
+      case One:
+	if (index_flag)
+	{
+	  if (input_from_partlist)
+	    fprintf (indexfile, "%s (M), file: `%s' %ld\n", full_repr (thisname), thispart, line);
+	  else
+	    fprintf (indexfile, "%s (M), %ld\n", full_repr (thisname), line);
+	}
+	if (ruletype & docompile)
+	  newdefnode (meta_prod_rule, lastmetarule, SON (brother), docompile, rulename);
+	else
+	  newnode (meta_prod_rule, lastmetarule, SON (brother), rulename);
+	lastmetarule = brother;
+	break;
+      case OneStar:
+	if (index_flag)
+	{
+	  if (input_from_partlist)
+	    fprintf (indexfile, "%s (P), file: `%s' %ld\n", full_repr (thisname), thispart, line);
+	  else
+	    fprintf (indexfile, "%s (P), %ld\n", full_repr (thisname), line);
 
-      }
-      if (ruletype & docompile)
-        newdefnode (meta_OneStar, lastmetarule, SON (brother), docompile, rulename);
-      else
-        newnode (meta_OneStar, lastmetarule, SON (brother), rulename);
-      lastmetarule = brother;
-      break;
-    case Mult:
-      if (index_flag)
-      {
-        if (input_from_partlist)
-          fprintf (indexfile, "%s (S), file: `%s' %d\n", full_repr (thisname), thispart, line);
-        else
-          fprintf (indexfile, "%s (S), %d\n", full_repr (thisname), line);
-      }
-      fprintf (stderr, "line %d in metarule `%s':\n\
-     Metaproductions can be implemented using\n\
-     1) Superrules  (ie  superrule :: @ hyperrule).\n\
-         Only applications on *defining* occurrences are recognized.\n\
-     2) Lattices (i.e latticerule :: {} mem1; mem2 . ).\n\
-     See the manual.\n\n", ln, full_repr (thisname));
-      syntaxerrors += 1;
-      break;
-    case Super:
-      if (index_flag)
-      {
-        if (input_from_partlist)
-          fprintf (indexfile, "%s (S), file: `%s' %d\n", full_repr (thisname), thispart, line);
-        else
-          fprintf (indexfile, "%s (S), %d\n", full_repr (thisname), line);
-      }
-      if (ruletype & docompile)
-        newdefnode (meta_prod_rule, lastmetarule, brother, docompile, rulename);
-      else
-        newnode (meta_prod_rule, lastmetarule, brother, rulename);
-      lastmetarule = brother;
-      break;
+	}
+	if (ruletype & docompile)
+	  newdefnode (meta_OneStar, lastmetarule, SON (brother), docompile, rulename);
+	else
+	  newnode (meta_OneStar, lastmetarule, SON (brother), rulename);
+	lastmetarule = brother;
+	break;
+      case Mult:
+	if (index_flag)
+	{
+	  if (input_from_partlist)
+	    fprintf (indexfile, "%s (S), file: `%s' %ld\n", full_repr (thisname), thispart, line);
+	  else
+	    fprintf (indexfile, "%s (S), %ld\n", full_repr (thisname), line);
+	}
+	fprintf (stderr, "line %ld in metarule `%s':\n\
+	    Metaproductions can be implemented using\n\
+	    1) Superrules  (ie  superrule :: @ hyperrule).\n\
+	  Only applications on *defining* occurrences are recognized.\n\
+	  2) Lattices (i.e latticerule :: {} mem1; mem2 . ).\n\
+	  See the manual.\n\n", ln, full_repr (thisname));
+	syntaxerrors += 1;
+	break;
+      case Super:
+	if (index_flag)
+	{
+	  if (input_from_partlist)
+	    fprintf (indexfile, "%s (S), file: `%s' %ld\n", full_repr (thisname), thispart, line);
+	  else
+	    fprintf (indexfile, "%s (S), %ld\n", full_repr (thisname), line);
+	}
+	if (ruletype & docompile)
+	  newdefnode (meta_prod_rule, lastmetarule, brother, docompile, rulename);
+	else
+	  newnode (meta_prod_rule, lastmetarule, brother, rulename);
+	lastmetarule = brother;
+	break;
 
-    case Lattice:
-      if (index_flag)
-      {
-        if (input_from_partlist)
-          fprintf (indexfile, "%s (A), file: `%s' %d\n", full_repr (thisname), thispart, line);
-        else
-          fprintf (indexfile, "%s (A), %d\n", full_repr (thisname), line);
-      }
-      newnode (0, nil, brother, rulename);
-      if (first_lattice == nil)
-        first_lattice = brother;
-      else
-        BROTHER (last_lattice) = brother;
-      last_lattice = brother;
-      break;
-    case Mint:
-      if (index_flag)
-      {
-        if (input_from_partlist)
-          fprintf (indexfile, "%s (P), file: `%s' %d\n", full_repr (thisname), thispart, line);
-        else
-          fprintf (indexfile, "%s (P), %d\n", full_repr (thisname), line);
-      }
-      if (ruletype & docompile)
-        newdefnode (meta_Mint, lastmetarule, brother, docompile, rulename);
-      else
-        newnode (meta_Mint, lastmetarule, brother, rulename);
-      lastmetarule = brother;
-      break;
+      case Lattice:
+	if (index_flag)
+	{
+	  if (input_from_partlist)
+	    fprintf (indexfile, "%s (A), file: `%s' %ld\n", full_repr (thisname), thispart, line);
+	  else
+	    fprintf (indexfile, "%s (A), %ld\n", full_repr (thisname), line);
+	}
+	newnode ((long)0, nil, brother, rulename);
+	if (first_lattice == nil)
+	  first_lattice = brother;
+	else
+	  BROTHER (last_lattice) = brother;
+	last_lattice = brother;
+	break;
+      case Mint:
+	if (index_flag)
+	{
+	  if (input_from_partlist)
+	    fprintf (indexfile, "%s (P), file: `%s' %ld\n", full_repr (thisname), thispart, line);
+	  else
+	    fprintf (indexfile, "%s (P), %ld\n", full_repr (thisname), line);
+	}
+	if (ruletype & docompile)
+	  newdefnode (meta_Mint, lastmetarule, brother, docompile, rulename);
+	else
+	  newnode (meta_Mint, lastmetarule, brother, rulename);
+	lastmetarule = brother;
+	break;
 
-    default:
-      ;
+      default:
+	;
     }
   else
     return false;
@@ -1991,10 +2031,9 @@ int ruletype;
   return true;
 }
 
-ismetarule (type)
-int *type;
+static long ismetarule (long *type) 
 {
-  int l_g;
+  long l_g;
   if (define_symbol (&l_g))
   {
     if (superrule ())
@@ -2010,7 +2049,7 @@ int *type;
   return false;
 }
 
-superrule ()
+static long superrule () 
 {
   if (super_symbol ())
   {
@@ -2019,11 +2058,11 @@ superrule ()
       char *repr = string;
       if (!display ())
       {
-        newnode (affixnt, nil, nil, "x");
-        newnode (derived, nil, brother, "");
+	newnode (affixnt, nil, nil, "x");
+	newnode (derived, nil, brother, "");
       }
       else if ((NODENAME (brother) != derived) || (BROTHER (brother) != nil))
-        errmsg ("ONE DERIVED AFFIX");
+	errmsg ("ONE DERIVED AFFIX");
       newnode (supernt, nil, brother, repr);
     }
     else
@@ -2040,7 +2079,8 @@ superrule ()
 }
 
 #define DIGIT isdigit(thischar)
-numberrule ()
+
+static long numberrule () 
 {
   if (negate_symbol ())
   {
@@ -2053,7 +2093,8 @@ numberrule ()
       return true;
     }
   }
-  if (pos_symbol ());
+  if (pos_symbol ())
+    ;
   if (!DIGIT)
     return false;
   while (DIGIT)
@@ -2080,9 +2121,9 @@ numberrule ()
 }
 
 
-abstractionrule ()
+static long abstractionrule () 
 {
-  int type;                     /* One, OneStar, or Mult */
+  long type;                     /* One, OneStar, or Mult */
 
   /* 
    * One :: "a" + empty. 
@@ -2102,9 +2143,9 @@ abstractionrule ()
 }
 
 
-meta_alts ()
+static long meta_alts () 
 {
-  int sons, type = One;
+  long sons, type = One;
   brother = nil;
   type = meta_terms ();
   sons = brother;
@@ -2119,9 +2160,9 @@ meta_alts ()
   return type;
 }
 
-meta_terms ()
+static long meta_terms () 
 {
-  int sons, type = One;
+  long sons, type = One;
   char *afxnt, *afxtm;
   if (name ())
   {
@@ -2139,11 +2180,11 @@ meta_terms ()
       sons = brother;
       if (plus_symbol ())
       {
-        type = meta_terms ();
-        newnode (factor, brother, sons, "(nil)");
+	type = meta_terms ();
+	newnode (factor, brother, sons, "(nil)");
       }
       else
-        newnode (factor, nil, sons, "(nil)");
+	newnode (factor, nil, sons, "(nil)");
     }
     else
       newnode (affixnt, nil, nil, afxnt);
@@ -2164,11 +2205,11 @@ meta_terms ()
       sons = brother;
       if (plus_symbol ())
       {
-        meta_terms ();
-        newnode (factor, brother, sons, "(nil)");
+	meta_terms ();
+	newnode (factor, brother, sons, "(nil)");
       }
       else
-        newnode (factor, nil, sons, "(nil)");
+	newnode (factor, nil, sons, "(nil)");
     }
     else
       newnode (affixtm, nil, nil, afxtm);
@@ -2178,7 +2219,7 @@ meta_terms ()
     type = Mult;
     if (plus_symbol ())
     {
-      int lastst = lastsettype;
+      long lastst = lastsettype;
       char *repr = string;
       meta_terms ();
       newnode (cnode | lastst, brother, nil, repr);
@@ -2191,7 +2232,7 @@ meta_terms ()
   return type;
 }
 
-meta_factors ()
+static void meta_factors () 
 {
   char *afxnt, *afxtm;
   if (name ())
@@ -2225,7 +2266,7 @@ meta_factors ()
   }
 }
 
-latticerule ()
+static long latticerule () 
 {
   if (lattice_symbol ())
   {
@@ -2244,19 +2285,19 @@ latticerule ()
   return false;
 }
 
-lattice_mems ()
+static void lattice_mems () 
 {
-  char *afxnt, *afxtm;
+  char *afxnt;
   if (name ())
   {
     afxnt = string;
     if (goon_symbol ())
     {
       lattice_mems ();
-      newnode (0, brother, nil, afxnt);
+      newnode ((long)0, brother, nil, afxnt);
     }
     else
-      newnode (0, nil, nil, afxnt);
+      newnode ((long)0, nil, nil, afxnt);
   }
   else
   {
@@ -2267,17 +2308,17 @@ lattice_mems ()
   }
 }
 
-checkdups ()
+static void checkdups () 
 {
-  unsigned char *s = string;
+  char *s = string;
   unsigned char c;
   unsigned char bv[255];
 
   if (underscore_allowed)
-    return true;                /* parsing glammar.g */
+    return;                /* parsing glammar.g */
   memset (bv, 0, 255);
 
-  while (c = *s++)
+  while ( (c = *s++) )
   {
     if (c > 127)
     {
@@ -2291,11 +2332,11 @@ checkdups ()
     {
       syntaxerrors += 1;
       if (input_from_partlist)
-        fprintf (stderr, "In %s:\n", cur_part_name);
+	fprintf (stderr, "In %s:\n", cur_part_name);
       if (c >= 128)
-        fprintf (stderr, "line %d: Duplicate char '\\%c' in set\n", line, c - 128);
+	fprintf (stderr, "line %ld: Duplicate char '\\%c' in set\n", line, c - 128);
       else
-        fprintf (stderr, "line %d: Duplicate char '%c' in set\n", line, c);
+	fprintf (stderr, "line %ld: Duplicate char '%c' in set\n", line, c);
       return;
     }
     bv[c] = 1;
